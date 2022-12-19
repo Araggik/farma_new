@@ -16,6 +16,7 @@
 </template>
 
 <script>
+import api from "../api/api.js";
 import CategoryWindow from './CategoryWindow.vue';
 import FilterField from './FilterField.vue';
 import ResearchWindow from './ResearchWindow.vue';
@@ -31,13 +32,23 @@ export default {
     };
   },
   methods: {
-
+    async printCategories(){
+      try {
+        let response = await api.getCategoriesByParent(0);
+        console.log(response.data);
+      } catch (error) {
+        console.log('Запрос не прошел');
+      }       
+    }
   },
   components: {
     CategoryWindow,
     FilterField,
     ResearchWindow,
   },
+  mounted(){
+    this.printCategories();
+  }
 }
 </script>
 
