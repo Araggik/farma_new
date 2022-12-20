@@ -29,16 +29,58 @@ export default {
       searchText: "",
       leftFraction: 3,
       rightFraction: 7,
+      categoriesAndResearches: [],
+      //Фильтры для сущностей в виде url параметров (NA и др.)
+      allUrlParams: {
+        category: [],
+        research: [],
+        oprions: []
+      }    
     };
   },
   methods: {
-    async printCategories(){
-      try {
-        let response = await api.getCategoriesByParent(0);
-        console.log(response.data);
-      } catch (error) {
-        console.log('Запрос не прошел');
-      }       
+    async refreshCategoriesAndResearches(){
+      try{
+        this.categoriesAndResearches = await this.createHierarchy(0);
+        console.log(this.categoriesAndResearches);
+      } catch(e){
+        console.log(e);
+        console.log('Refresh Error');
+      }    
+    },
+    async createHierarchy(parentId){
+      let hierarchy = [];
+      
+      //Получение детей категории
+      let categoryResponse = await api.getCategories(
+        'id_parent=eq.'+ parentId + this.allUrlParams['category'].join('')
+      );
+
+      let categories = categoryResponse.data;
+
+      for(let element of categories){
+        let newCategoryNode = {
+          category: element
+        };
+
+        //Получение исследований категории
+        let researchResponse = await api.getResearches(
+          'id_clr=eq.'+ element['id_clr'] + this.allUrlParams['research'].join('')
+        );
+
+        let researches = researchResponse.data;
+
+        newCategoryNode['researches'] = researches;
+
+        //Получение детей детей
+        let categoryChildren = await this.createHierarchy(element['id_clr']);
+
+        newCategoryNode['children'] = categoryChildren;
+
+        hierarchy.push(newCategoryNode);
+      }
+
+      return hierarchy;
     }
   },
   components: {
@@ -47,7 +89,7 @@ export default {
     ResearchWindow,
   },
   mounted(){
-    this.printCategories();
+    this.refreshCategoriesAndResearches();
   }
 }
 </script>

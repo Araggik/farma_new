@@ -7,12 +7,20 @@ let instance =  axios.create({
 });
 
 export default {
-    getCategoriesByParent(parentId){
+    getCategories(urlParams = ''){
         let table = "category_lr?";
     
-        let url_params = "id_parent=eq." + parentId;
+        return instance.get(table + urlParams);
+    },
+    getResearches(urlParams = ''){
+        let table = "lab_research?";
     
-        return instance.get(table + url_params);
+        return instance.get(table + urlParams);
+    },
+    getOptions(urlParams = ''){
+        let table = "laboratorys_options?";
+    
+        return instance.get(table + urlParams);
     }
 }
 
