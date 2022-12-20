@@ -3,7 +3,7 @@
     <div class='main-window__left' :style='{flex: leftFraction}'>
       <input class='search-input' type="text" :placeholder="placeholderText"
       v-model="searchText">
-      <CategoryWindow/>
+      <CategoryWindow :category-tree="categoryTree"/>
     </div>
     <div class="main-window__separator">
 
@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import api from "../api/api.js";
+import axios from "axios";
 import CategoryWindow from './CategoryWindow.vue';
 import FilterField from './FilterField.vue';
 import ResearchWindow from './ResearchWindow.vue';
@@ -25,62 +25,61 @@ export default {
   name: 'MainWindow',
   data(){
     return {
+      api: axios.create({
+        baseURL: "http://45.144.31.110:3000/"
+      }),
       placeholderText: "Поиск по всему",
       searchText: "",
       leftFraction: 3,
       rightFraction: 7,
-      categoriesAndResearches: [],
+      categoryTree: [],
       //Фильтры для сущностей в виде url параметров (NA и др.)
       allUrlParams: {
-        category: [],
+        category: [
+          'order=name_clr.asc'
+        ],
         research: [],
         oprions: []
       }    
     };
   },
+  computed: {
+    categoryUrlParams(){
+      return '&' +this.allUrlParams['category'].join('&');
+    }
+  },
   methods: {
-    async refreshCategoriesAndResearches(){
-      try{
-        this.categoriesAndResearches = await this.createHierarchy(0);
-        console.log(this.categoriesAndResearches);
-      } catch(e){
-        console.log(e);
-        console.log('Refresh Error');
-      }    
-    },
-    async createHierarchy(parentId){
-      let hierarchy = [];
-      
-      //Получение детей категории
-      let categoryResponse = await api.getCategories(
-        'id_parent=eq.'+ parentId + this.allUrlParams['category'].join('')
-      );
+    //Возвращает [{category: category, children: []}]
+    makeCategoryTree(categories, parentId){
+      let tree = [];
 
-      let categories = categoryResponse.data;
+      const children = categories.filter((element)=>element['id_parent'] == parentId);
 
-      for(let element of categories){
-        let newCategoryNode = {
-          category: element
-        };
-
-        //Получение исследований категории
-        let researchResponse = await api.getResearches(
-          'id_clr=eq.'+ element['id_clr'] + this.allUrlParams['research'].join('')
-        );
-
-        let researches = researchResponse.data;
-
-        newCategoryNode['researches'] = researches;
-
-        //Получение детей детей
-        let categoryChildren = await this.createHierarchy(element['id_clr']);
-
-        newCategoryNode['children'] = categoryChildren;
-
-        hierarchy.push(newCategoryNode);
+      for(let element of children){
+        tree.push({
+          category: element,
+          children: this.makeCategoryTree(categories, element['id_clr'])
+        });
       }
 
-      return hierarchy;
+      return tree;
+    },
+    async refreshCategory(){
+      try {
+        const table = 'category_lr?'
+
+        const categoryResponse = await this.api.get(table+this.categoryUrlParams);
+
+        const categories = categoryResponse.data;
+
+        this.categoryTree = this.makeCategoryTree(categories, 0);
+
+        console.log(this.categoryTree);
+
+      } catch(e) {
+        console.log('Category fetch error');
+        console.log(e);
+      }    
     }
   },
   components: {
@@ -89,7 +88,7 @@ export default {
     ResearchWindow,
   },
   mounted(){
-    this.refreshCategoriesAndResearches();
+    this.refreshCategory();
   }
 }
 </script>
@@ -97,6 +96,7 @@ export default {
 <style scoped>
 .main-window__left {
   border: 2px solid black;
+  overflow: scroll;
 }
 
 .main-window__right {
