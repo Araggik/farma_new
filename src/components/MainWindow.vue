@@ -3,7 +3,7 @@
     <div class='main-window__left' :style='{flex: leftFraction}'>
       <input class='search-input' type="text" :placeholder="placeholderText"
       v-model="searchText">
-      <CategoryWindow :category-tree="categoryTree"/>
+      <CategoryWindow :category-tree="categoryTree" @change-category="onChangeCategory"/>
     </div>
     <div class="main-window__separator">
 
@@ -74,12 +74,13 @@ export default {
 
         this.categoryTree = this.makeCategoryTree(categories, 0);
 
-        console.log(this.categoryTree);
-
       } catch(e) {
         console.log('Category fetch error');
         console.log(e);
       }    
+    },
+    onChangeCategory(category){
+      alert(category['name_clr']);
     }
   },
   components: {
@@ -96,7 +97,7 @@ export default {
 <style scoped>
 .main-window__left {
   border: 2px solid black;
-  overflow: scroll;
+  overflow: auto;
 }
 
 .main-window__right {

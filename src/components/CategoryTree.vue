@@ -1,8 +1,10 @@
 <template>
     <ul v-if="tree.length>0">
         <li v-for="el in tree" :key="el.category['id_clr']">
-            <p>{{el.category['name_clr']}}</p>
-            <CategoryTree :tree="el.children"/>
+            <p @click="$emit('categoryClick', el.category)">
+                {{el.category['name_clr']}}
+            </p>
+            <CategoryTree @category-click="(category)=>$emit('categoryClick', category)" :tree="el.children"/>
         </li>
     </ul>
 </template>
