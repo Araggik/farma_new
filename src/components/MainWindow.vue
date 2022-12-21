@@ -80,7 +80,7 @@ export default {
       }    
     },
     onChangeCategory(category){
-      alert(category['name_clr']);
+      console.log(category['name_clr']);
     }
   },
   components: {

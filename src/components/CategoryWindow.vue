@@ -4,7 +4,8 @@
          <p class="category-header__text">Категории</p>
          <button class="category-header__btn">Добавить</button>
       </div>
-      <CategoryTree :tree="categoryTree" @category-click="(category)=>{$emit('changeCategory', category)}"/>   
+      <CategoryTree :tree="{category: null, children: categoryTree}"
+      @category-click="(category)=>{$emit('changeCategory', category)}"/>   
    </div> 
 </template>
 
