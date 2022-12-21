@@ -11,7 +11,7 @@
         <ul v-if="tree.children.length >0" v-show="isVisible"
         class="category-list"  :class="{'category-list_margined': tree.category}">
             <CategoryTree v-for="el in tree.children" :key="el.category['id_clr']" :tree="el"
-            @category-click="(category)=>$emit('categoryClick', category)">
+            @category-click="(categoryId)=>$emit('categoryClick', categoryId)">
             </CategoryTree>
         </ul>   
     </li>
@@ -31,7 +31,7 @@ export default {
     },
     methods: {
         onClick(){
-            this.$emit('categoryClick', this.tree.category);
+            this.$emit('categoryClick', this.tree.category['id_clr']);
             this.isVisible = !this.isVisible;
         }
     },

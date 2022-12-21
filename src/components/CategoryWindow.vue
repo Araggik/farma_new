@@ -7,7 +7,9 @@
 
       <ul class="first-category-list">
          <CategoryTree v-for="el in categoryTree" :key="el.category['id_clr']" :tree="el"
-         @category-click="(category)=>{$emit('changeCategory', category)}"/> 
+         @category-click="(categoryId)=>
+            $emit('changeCategory', categoryId)
+         "/> 
       </ul>
         
    </div> 
