@@ -4,8 +4,12 @@
          <p class="category-header__text">Категории</p>
          <button class="category-header__btn">Добавить</button>
       </div>
-      <CategoryTree :tree="{category: null, children: categoryTree}"
-      @category-click="(category)=>{$emit('changeCategory', category)}"/>   
+
+      <ul class="first-category-list">
+         <CategoryTree v-for="el in categoryTree" :key="el.category['id_clr']" :tree="el"
+         @category-click="(category)=>{$emit('changeCategory', category)}"/> 
+      </ul>
+        
    </div> 
 </template>
 
