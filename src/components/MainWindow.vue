@@ -103,7 +103,7 @@ export default {
         console.log(e);
       }    
     },
-    async makeResearches(currentNode, researches=[]){
+    async makeResearches(currentNode){
       //Получение исследований категории
       let researchResponse = await 
         this.api.get('lab_research?id_clr=eq.'+currentNode.category['id_clr']+this.researchUrlParams+
@@ -112,19 +112,19 @@ export default {
 
       const categoryResearches = researchResponse.data;
 
-      researches.push({category: currentNode.category, researches: categoryResearches});
+      this.mainCategoryResearches.push({category: currentNode.category, researches: categoryResearches});
   
       for(let category of currentNode.children){
-        this.makeResearches(category, researches);
+        this.makeResearches(category);
       }
-
-      return researches;
     },
-    async refreshResearches(){
-      this.mainCategoryTree = 
+    refreshResearches(){
+      const mainCategoryTree = 
         this.categoryTree.find(el=>el.category['id_clr'] == this.currentMainCategoryId);
+
+      this.mainCategoryResearches.length = 0;  
         
-      this.mainCategoryResearches = await this.makeResearches(this.mainCategoryTree);
+      this.makeResearches(mainCategoryTree);
     },
     async onChangeCategory(categoryId){  
       //Обновляем категории и проверям, что выбранная категория существует
