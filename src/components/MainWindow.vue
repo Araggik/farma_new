@@ -9,7 +9,7 @@
 
     </div>
     <div class="main-window__right" :style='{flex: rightFraction}'>
-      <FilterField/>
+      <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"/>
       <ResearchWindow :research-list="mainCategoryResearches"/>
     </div>
   </main>
@@ -39,6 +39,8 @@ export default {
       existCurrentCategoryId: false,
       //Список: категория и её исследования
       mainCategoryResearches: [],
+      //Список лабораторий
+      laboratories: [],
       //Фильтры для сущностей в виде url параметров (NA и др.)
       allUrlParams: {
         category: [
@@ -47,7 +49,8 @@ export default {
         research: [
           'order=name_lr.asc'
         ],
-        oprions: []
+        options: [
+        ]
       }    
     };
   },
@@ -58,6 +61,9 @@ export default {
     researchUrlParams(){
       return '&' +this.allUrlParams['research'].join('&');
     },
+    optionUrlParams(){
+      return '&' + this.allUrlParams['option'].join('&');
+    }
   },
   methods: {
     //Возвращает [{category: category, children: []}]
@@ -72,6 +78,7 @@ export default {
         if (checkedCategoryId && (element['id_clr'] == checkedCategoryId)){
           this.existCurrentCategoryId = true;
           this.currentMainCategoryId = mainCategoryId || element['id_clr'];
+          this.currentCategoryId = checkedCategoryId;
         }
 
         tree.push({
@@ -107,7 +114,8 @@ export default {
       //Получение исследований категории
       let researchResponse = await 
         this.api.get('lab_research?id_clr=eq.'+currentNode.category['id_clr']+this.researchUrlParams+
-          '&select=id_lr,name_lr, laboratorys_options(id_lo,old_code_l,laboratories(name_lab))'
+          '&select=id_lr,name_lr, laboratorys_options(id_lo,old_code_l,laboratories(name_lab))' +
+          this.optionUrlParams
         );
 
       const categoryResearches = researchResponse.data;
@@ -126,13 +134,52 @@ export default {
         
       this.makeResearches(mainCategoryTree);
     },
+    async refreshLaboratories(){
+      const laboratoriesResponse = await 
+        this.api.get('laboratories');
+
+      this.laboratories = laboratoriesResponse.data;
+    },
     async onChangeCategory(categoryId){  
       //Обновляем категории и проверям, что выбранная категория существует
       this.existCurrentCategoryId = false;
 
+      this.refreshAll(categoryId);
+    },
+    async refreshAll(categoryId = null){
       await this.refreshCategory(categoryId);
-      
-      this.refreshResearches();
+
+      await this.refreshLaboratories();
+
+      if(categoryId)  {
+        this.refreshResearches();
+      }           
+    },
+    //Добавляет фильтрацию к laboratorys_options по списку лабораторий
+    addLaboratoryOptionsByLabs(labs){
+      //Нужно будет в дальнейшем поменять, пока считаем других опций нет
+      if (this.allUrlParams['options'].length > 0){
+        this.allUrlParams['options'].pop();
+      }
+
+      let str='laboratorys_options.id_labs=in.(';
+
+      let n = labs.length-1;
+
+      for(let i=0;i<n;i++){
+        str+=labs[i]['id_labs']+',';
+      }
+
+      str +=labs[n]['id_labs']+')';
+
+      this.allUrlParams['options'].push(str);
+
+      console.log(this.allUrlParams['options']);
+    },
+    onChangeLaboratories(selectLaboratories){
+      this.addLaboratoryOptionsByLabs(selectLaboratories);
+
+      this.refreshAll(this.currentCategoryId);
     }
   },
   components: {
@@ -142,6 +189,7 @@ export default {
   },
   created(){
     this.refreshCategory();
+    this.refreshLaboratories();
   }
 }
 </script>
