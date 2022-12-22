@@ -10,7 +10,8 @@
     </div>
     <div class="main-window__right" :style='{flex: rightFraction}'>
       <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"/>
-      <ResearchWindow :research-list="mainCategoryResearches"/>
+      <ResearchWindow :research-list="mainCategoryResearches" 
+      :laboratories-list="selectLaboratories" :max-laboratories="laboratories.length"/>
     </div>
   </main>
 </template>
@@ -41,6 +42,8 @@ export default {
       mainCategoryResearches: [],
       //Список лабораторий
       laboratories: [],
+      //Выбранные лаборатории
+      selectLaboratories: [],
       //Фильтры для сущностей в виде url параметров (NA и др.)
       allUrlParams: {
         category: [
@@ -62,7 +65,7 @@ export default {
       return '&' +this.allUrlParams['research'].join('&');
     },
     optionUrlParams(){
-      return '&' + this.allUrlParams['option'].join('&');
+      return '&' + this.allUrlParams['options'].join('&');
     }
   },
   methods: {
@@ -114,7 +117,7 @@ export default {
       //Получение исследований категории
       let researchResponse = await 
         this.api.get('lab_research?id_clr=eq.'+currentNode.category['id_clr']+this.researchUrlParams+
-          '&select=id_lr,name_lr, laboratorys_options(id_lo,old_code_l,laboratories(name_lab))' +
+          '&select=id_lr,name_lr, laboratorys_options(id_lo,code_l,id_labs)' +
           this.optionUrlParams
         );
 
@@ -140,7 +143,7 @@ export default {
 
       this.laboratories = laboratoriesResponse.data;
     },
-    async onChangeCategory(categoryId){  
+    onChangeCategory(categoryId){  
       //Обновляем категории и проверям, что выбранная категория существует
       this.existCurrentCategoryId = false;
 
@@ -162,24 +165,31 @@ export default {
         this.allUrlParams['options'].pop();
       }
 
-      let str='laboratorys_options.id_labs=in.(';
+      if (labs.length > 0){
+        let str='laboratorys_options.id_labs=in.(';
 
-      let n = labs.length-1;
+        let n = labs.length-1;
 
-      for(let i=0;i<n;i++){
-        str+=labs[i]['id_labs']+',';
+        for(let i=0;i<n;i++){
+          str+=labs[i]['id_labs']+',';
+        }
+
+        str +=labs[n]['id_labs']+')';
+
+        this.allUrlParams['options'].push(str);
       }
-
-      str +=labs[n]['id_labs']+')';
-
-      this.allUrlParams['options'].push(str);
 
       console.log(this.allUrlParams['options']);
     },
-    onChangeLaboratories(selectLaboratories){
+    async onChangeLaboratories(selectLaboratories){
       this.addLaboratoryOptionsByLabs(selectLaboratories);
 
-      this.refreshAll(this.currentCategoryId);
+      await this.refreshAll(this.currentCategoryId);
+
+      if (selectLaboratories.length > 0 )
+        this.selectLaboratories = selectLaboratories;
+      else
+        this.selectLaboratories = this.laboratories;   
     }
   },
   components: {
@@ -187,9 +197,10 @@ export default {
     FilterField,
     ResearchWindow,
   },
-  created(){
+  async created(){
     this.refreshCategory();
-    this.refreshLaboratories();
+    await this.refreshLaboratories();
+    this.selectLaboratories = this.laboratories;
   }
 }
 </script>

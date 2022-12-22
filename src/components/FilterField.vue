@@ -38,7 +38,6 @@ export default {
         onBoxClick(){
             this.isVisibleCheckBox = !this.isVisibleCheckBox;
             if (!this.isVisibleCheckBox){
-                console.log(this.selectLaboratories);
                 this.$emit('changeLaboratories', this.selectLaboratories);
             }
         }
