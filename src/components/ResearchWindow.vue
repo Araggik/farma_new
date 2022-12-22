@@ -1,7 +1,7 @@
 <template>
-   <div>   
+   <div class="research-window">   
       <table class="research-table">
-         <thead>
+         <thead class="research-table__head">
             <tr>
                <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']">
                   {{ laboratory['name_lab'] }}
@@ -11,7 +11,7 @@
          </thead>
          <tbody>
             <template v-for="node in researchList" :key="node.category['id_clr']">
-               <tr align="center" class="category-header" 
+               <tr class="category-header" 
                :class="{'category-header-main': node.category['id_parent'] == 0}">
                   <td :colspan="laboratoriesList.length+1">
                      {{ node.category['name_clr'] }}
@@ -20,7 +20,7 @@
                <template v-for="research in node.researches" :key="research['id_lr']">
                   <!--При запросе появляются исследования с пустыми опциями-->
                   <tr v-if="!(research['laboratorys_options'].length == 0 && 
-                  maxLaboratories != laboratoriesList.length)">
+                  maxLaboratories != laboratoriesList.length)" class="research-row">
 
                      <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']">
                         {{ findCodeByLab(research, laboratory) }}
@@ -35,23 +35,33 @@
             </template>  
          </tbody>
       </table>
-   </div> 
+   </div>
+   <ResearchForm v-if="isFormVisible"/>
 </template>
 
 <script>
+import ResearchForm from './ResearchForm.vue';
+
 export default {
    props: {
-      researchList: Array,
-      laboratoriesList: Array,
-      maxLaboratories: Number
+       researchList: Array,
+       laboratoriesList: Array,
+       maxLaboratories: Number
+   },
+   data(){
+      return {
+         isFormVisible: false
+      };
    },
    methods: {
-      findCodeByLab(research, lab){
-         const labOption = research['laboratorys_options'].find((el)=>el['id_labs'] == lab['id_labs']);
-
-         return labOption ? labOption['code_l'] : '-';
-      }
+       findCodeByLab(research, lab) {
+           const labOption = research["laboratorys_options"].find((el) => el["id_labs"] == lab["id_labs"]);
+           return labOption ? labOption["code_l"] : "-";
+       }
    },
+   components: { 
+     ResearchForm 
+   }
 }
 </script>
 
@@ -60,11 +70,26 @@ table, tr, td {
    border-collapse: collapse;
    border: 1px solid black;
 }
+
+.research-window{
+   padding-top: 34px;
+}
+
+/* .research-table__head {
+   
+} */
+
 .category-header {
    font-weight: bold;
+   text-align: center;
 }
 
 .category-header-main {
    background-color: lightgrey;
+}
+
+.research-row:hover {
+   cursor: pointer;
+   font-weight: bolder;
 }
 </style>

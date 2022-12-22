@@ -54,12 +54,8 @@ export default {
 }
 .filter-field {
     display: flex;
+    position: fixed;
 }
-
-.drop-check-box {
-    z-index: 2;
-}
-
 .drop-check-box__btn {
     display: flex;
     align-items: center;
