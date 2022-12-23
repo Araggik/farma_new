@@ -1,12 +1,14 @@
 <template>
    <div class="research-window">   
-      <table class="research-table">
+      <table class="research-table" :style="{'width': (laboratoriesList.length*5 + 34)+'em'}">
          <thead class="research-table__head">
             <tr>
-               <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']">
+               <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']"
+               class="research-table__lab-td">
                   {{ laboratory['name_lab'] }}
                </td>
-               <td>Исследования</td>
+
+               <td class="research-table__research-td">Исследования</td>
             </tr>
          </thead>
          <tbody>
@@ -22,10 +24,11 @@
                   <tr v-if="!(research['laboratorys_options'].length == 0 && 
                   maxLaboratories != laboratoriesList.length)" class="research-row">
 
-                     <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']">
+                     <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']"
+                     class="research-table__lab-td">
                         {{ findCodeByLab(research, laboratory) }}
                      </td>
-                     <td>
+                     <td class="research-table__research-td">
                         {{ research['name_lr'] }}
                      </td>
 
@@ -71,13 +74,27 @@ table, tr, td {
    border: 1px solid black;
 }
 
+td {
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+
 .research-window{
    padding-top: 34px;
 }
 
-/* .research-table__head {
-   
-} */
+.research-table {
+   table-layout: fixed;
+}
+
+.research-table__lab-td {
+   width: 5em;
+}
+
+.research-table__research-td {
+   width: 34em;
+}
 
 .category-header {
    font-weight: bold;
