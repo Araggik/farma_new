@@ -22,7 +22,8 @@
                <template v-for="research in node.researches" :key="research['id_lr']">
                   <!--При запросе появляются исследования с пустыми опциями-->
                   <tr v-if="!(research['laboratorys_options'].length == 0 && 
-                  maxLaboratories != laboratoriesList.length)" class="research-row">
+                  maxLaboratories != laboratoriesList.length)" class="research-row"
+                  @click="$emit('researchClick', research['id_lr'])">
 
                      <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']"
                      class="research-table__lab-td">
@@ -33,37 +34,26 @@
                      </td>
 
                   </tr>
-
                </template>      
             </template>  
          </tbody>
       </table>
    </div>
-   <ResearchForm v-if="isFormVisible"/>
 </template>
 
 <script>
-import ResearchForm from './ResearchForm.vue';
-
 export default {
    props: {
        researchList: Array,
        laboratoriesList: Array,
        maxLaboratories: Number
    },
-   data(){
-      return {
-         isFormVisible: false
-      };
-   },
+   emits: ['researchClick'],
    methods: {
        findCodeByLab(research, lab) {
            const labOption = research["laboratorys_options"].find((el) => el["id_labs"] == lab["id_labs"]);
            return labOption ? labOption["code_l"] : "-";
        }
-   },
-   components: { 
-     ResearchForm 
    }
 }
 </script>

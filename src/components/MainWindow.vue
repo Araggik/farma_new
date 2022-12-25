@@ -11,16 +11,20 @@
     <div class="main-window__right" :style='{flex: rightFraction}'>
       <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"/>
       <ResearchWindow :research-list="mainCategoryResearches" 
-      :laboratories-list="selectLaboratories" :max-laboratories="laboratories.length"/>
+      :laboratories-list="selectLaboratories" :max-laboratories="laboratories.length"
+      @research-click="onResearchClick"/>
     </div>
   </main>
+  <ResearchForm v-if="isResearchFormVisible"/>
 </template>
 
 <script>
 import axios from "axios";
 import CategoryWindow from './CategoryWindow.vue';
 import FilterField from './FilterField.vue';
+import ResearchForm from './ResearchForm.vue';
 import ResearchWindow from './ResearchWindow.vue';
+
 
 export default {
   name: 'MainWindow',
@@ -37,6 +41,7 @@ export default {
       categoryTree: [],
       currentMainCategoryId: null,
       currentCategoryId: null,
+      currentResearch: null,
       existCurrentCategoryId: false,
       //Список: категория и её исследования
       mainCategoryResearches: [],
@@ -44,6 +49,7 @@ export default {
       laboratories: [],
       //Выбранные лаборатории
       selectLaboratories: [],
+      isResearchFromVisible: false,
       //Фильтры для сущностей в виде url параметров (NA и др.)
       allUrlParams: {
         category: [
@@ -124,14 +130,17 @@ export default {
       const categoryResearches = researchResponse.data;
 
       this.mainCategoryResearches.push({category: currentNode.category, researches: categoryResearches});
-  
+
+      //Подумать над использованием асинхронности
       for(let category of currentNode.children){
-        this.makeResearches(category);
+        await this.makeResearches(category);
       }
     },
-    refreshResearches(){
+    async refreshResearches(){
       const mainCategoryTree = 
         this.categoryTree.find(el=>el.category['id_clr'] == this.currentMainCategoryId);
+
+      console.log(mainCategoryTree);  
 
       this.mainCategoryResearches.length = 0;  
         
@@ -190,12 +199,39 @@ export default {
         this.selectLaboratories = selectLaboratories;
       else
         this.selectLaboratories = this.laboratories;   
+    },
+    async onResearchClick(researchId){
+      this.currentResearch = null;
+
+      //Получение исследования и опций по Id
+      const researchResponse = await
+        this.api.get(`lab_research?id_lr=eq.${researchId}
+          &select=*,laboratorys_options(*,laboratories(id_labs,name_lab))`);
+
+      if (researchResponse.data.length > 0){
+        this.currentResearch = {research: researchResponse.data}; 
+          
+        const bioMaterialsResponse = await 
+          this.api.get(`lab_research?id_lr=eq.${researchId}
+          &select=id_lr, bm_of_study(*,bio_materials(id_bm, name_bm))`)
+          
+        this.currentResearch['bioMaterials'] = bioMaterialsResponse.data;
+        
+        const materialsResponse = await 
+          this.api.get(`lab_research?id_lr=eq.${researchId}
+          &select=id_lr, use_m(*, materials(id_m, name_m))`);
+          
+        this.currentResearch['materials'] = materialsResponse.data;
+      }
+        
+      this.isResearchFromVisible = true;  
     }
   },
   components: {
     CategoryWindow,
     FilterField,
     ResearchWindow,
+    ResearchForm
   },
   async created(){
     this.refreshCategory();
