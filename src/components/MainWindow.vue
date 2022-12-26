@@ -15,7 +15,7 @@
       @research-click="onResearchClick"/>
     </div>
   </main>
-  <ResearchForm v-if="isResearchFormVisible"/>
+  <ResearchForm v-if="isResearchFormVisible" :research-data="currentResearchData"/>
 </template>
 
 <script>
@@ -41,7 +41,7 @@ export default {
       categoryTree: [],
       currentMainCategoryId: null,
       currentCategoryId: null,
-      currentResearch: null,
+      currentResearchData: null,
       existCurrentCategoryId: false,
       //Список: категория и её исследования
       mainCategoryResearches: [],
@@ -49,7 +49,7 @@ export default {
       laboratories: [],
       //Выбранные лаборатории
       selectLaboratories: [],
-      isResearchFromVisible: false,
+      isResearchFormVisible: false,
       //Фильтры для сущностей в виде url параметров (NA и др.)
       allUrlParams: {
         category: [
@@ -140,8 +140,6 @@ export default {
       const mainCategoryTree = 
         this.categoryTree.find(el=>el.category['id_clr'] == this.currentMainCategoryId);
 
-      console.log(mainCategoryTree);  
-
       this.mainCategoryResearches.length = 0;  
         
       this.makeResearches(mainCategoryTree);
@@ -201,7 +199,7 @@ export default {
         this.selectLaboratories = this.laboratories;   
     },
     async onResearchClick(researchId){
-      this.currentResearch = null;
+      this.currentResearchData = null;
 
       //Получение исследования и опций по Id
       const researchResponse = await
@@ -209,22 +207,38 @@ export default {
           &select=*,laboratorys_options(*,laboratories(id_labs,name_lab))`);
 
       if (researchResponse.data.length > 0){
-        this.currentResearch = {research: researchResponse.data}; 
+        this.currentResearchData = {research: researchResponse.data[0]}; 
+
+        const dataList = ['bioMaterials', 
+          'materials', 
+          'bioMaterialsList', 
+          'materialsList',
+          'laboratoriesList'
+        ];
           
-        const bioMaterialsResponse = await 
+        const responses = await Promise.all([
+          //Био матералы исследования
           this.api.get(`lab_research?id_lr=eq.${researchId}
-          &select=id_lr, bm_of_study(*,bio_materials(id_bm, name_bm))`)
-          
-        this.currentResearch['bioMaterials'] = bioMaterialsResponse.data;
+            &select=id_lr, bm_of_study(*,bio_materials(id_bm, name_bm))`),
+          //Материалы исследования
+          this.api.get(`lab_research?id_lr=eq.${researchId}
+            &select=id_lr, use_m(*, materials(id_m, name_m))`),
+          //Список биоматериалов
+          this.api.get(`bio_materials?`), 
+          //Список материалов
+          this.api.get(`materials?`),
+          //Список лабораторий
+          this.api.get(`laboratories?`),         
+        ]);  
         
-        const materialsResponse = await 
-          this.api.get(`lab_research?id_lr=eq.${researchId}
-          &select=id_lr, use_m(*, materials(id_m, name_m))`);
-          
-        this.currentResearch['materials'] = materialsResponse.data;
+        for(let i=0; i<responses.length; i++) {
+          this.currentResearchData[dataList[i]] = responses[i].data;
+        }
       }
         
-      this.isResearchFromVisible = true;  
+      this.isResearchFormVisible = true;
+
+      console.log(this.currentResearchData);
     }
   },
   components: {
@@ -257,6 +271,7 @@ export default {
 }
 
 .main-window {
+  z-index: 0;
   display: flex;
   width: 100vw;
   height: 100vh;
