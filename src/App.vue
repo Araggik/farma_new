@@ -73,9 +73,9 @@ ol[class] {
     flex-direction: column;
     background-color: white;
     border: 2px solid black;
-    width: 40rem;
+    width: 44rem;
     padding: 5px;
-    gap: 5px;
+    gap: 10px;
     overflow: auto;
     max-height: 90%;
 }
@@ -121,6 +121,24 @@ ol[class] {
 .form__list-item {
   display: flex;
   justify-content: space-between;
+}
+
+.form__table-window {
+  border: 2px solid black;
+}
+
+.form__table-container {
+  width: 100%;
+  overflow: auto;
+  padding: 10px;
+  min-height: 8rem;
+}
+
+.form__table-name {
+  text-align: center;
+  background-color: lightgray;
+  font-weight: bolder;
+  border-bottom: 2px solid black;
 }
 
 .form__buttons {

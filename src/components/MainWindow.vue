@@ -16,7 +16,7 @@
     </div>
   </main>
   <ResearchForm v-if="isResearchFormVisible" :research-data="currentResearchData"
-  @form-close="onResearchFormClose"/>
+  @form-close="onResearchFormClose" :api="api"/>
 </template>
 
 <script>

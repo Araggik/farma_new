@@ -5,6 +5,7 @@
                 {{ 'Редактирование исследования' }}
             </div>
 
+            <!--Select для категории-->
             <div class="form__field">
                <label for='categoryResearchField'>
                     {{ 'Категория:' }}
@@ -16,6 +17,7 @@
                </select>
             </div>
 
+            <!--Поля исследования-->
             <div v-for="(value, key) in visibleResearchFieldMap" :key="key"
             class="form__field">
                <label :for="key+'ResearchField'">
@@ -25,13 +27,14 @@
                :type="typeof(researchData['research'][key]) == 'boolean' ? 'checkbox' : 'text'">
             </div>
 
+            <!--Список био материалов-->
             <div class="form__lists">
                 <div class="form__list">
                     <div class="form__list-head">
                         <div>
                             {{ 'Био материалы' }}
                         </div>
-                        <button> {{ 'Добавить' }}</button>
+                        <button @click.prevent> {{ 'Добавить' }}</button>
                     </div>
                     <ul class="form__list-body">
                         <li v-for="bioMaterial in researchData['bioMaterials']['bm_of_study']"
@@ -43,12 +46,14 @@
                         </li>
                     </ul>
                 </div>
+
+                <!--Список материалов-->
                 <div class="form__list">
                     <div class="form__list-head">
                         <div>
                             {{ 'Расходные материалы' }}
                         </div>         
-                        <button> {{ 'Добавить' }}</button>
+                        <button @click.prevent> {{ 'Добавить' }}</button>
                     </div>
                     <ul class="form__list-body">
                         <li v-for="material in researchData['materials']['use_m']"
@@ -62,10 +67,40 @@
                 </div>
             </div>
 
-            <table class="form__table">
-
-            </table>
-
+            <!--Окно с таблицей-->
+            <div class="form__table-window">
+                <div class="form__table-name">
+                    Нюансы исследований
+                </div>
+                <div class="form__table-container">
+                    
+                    <table class="form__table">
+                        <thead>
+                            <tr>
+                                <td v-for="value in visibleOptionFieldMap" :key="value">
+                                    <div class="cell">
+                                        {{ value }}
+                                    </div>                          
+                                </td>  
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="researchOption in 
+                            researchData['research']['laboratorys_options']"
+                            :key="researchOption['id_lo']">
+                                <td v-for="(value, key) in visibleOptionFieldMap"
+                                :key="key">
+                                    <div class="cell">
+                                        {{ researchOption[key] }}
+                                    </div>                                  
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+                
+            <!--Кнопки формы-->
             <div class="form__buttons">
                 <button class="form__button" @click="onButtonClick(true)">
                     {{ 'ОК' }}
@@ -91,6 +126,15 @@ export default {
                 'full_name_lr': 'Полное имя',
                 'desc_lr': 'Описание',
                 'na': 'Не активно'
+            },
+            visibleOptionFieldMap: {
+                'code_l': 'Код исследования',
+                'old_code_l': 'Старый код исследования',
+                'cost_lo': 'Цена исследования',
+                'lead_time': 'Срок исследования',
+                'fast_execution': 'Быстрое исследование',
+                'fast_exec_cost': 'Цена быстрого исследования',
+                'fast_exec_time': 'Срок быстрого исследования'
             },
             result: {
                 result: false
@@ -118,11 +162,12 @@ table, tr, td {
    border: 1px solid black;
 }
 
-td {
-   overflow: hidden;
-   text-overflow: ellipsis;
-   white-space: nowrap;
+.cell { 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 7rem;
+    height: 3rem;
+    padding: 2px;
+    text-align: center;
 }
-
-
 </style>
