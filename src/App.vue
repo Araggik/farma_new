@@ -52,4 +52,97 @@ ul[class],
 ol[class] {
 	list-style: none;
 }
+
+/* Стили для форм */
+.modal-layout {
+    position: fixed;
+    z-index: 1;
+    background-color: rgba(211, 211, 211, 0.5);
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border: 2px solid black;
+    width: 40rem;
+    padding: 5px;
+    gap: 5px;
+    overflow: auto;
+    max-height: 90%;
+}
+
+.form__head {
+    margin-top: -5px;
+    margin-left: -5px;
+    margin-right: -5px;
+    text-align: center;
+    background-color: lightgray;
+    font-weight: bolder;
+    padding: 5px;
+    border-bottom: 2px solid black;
+}
+
+.form__field {
+   display: flex;
+   gap: 5px;
+}
+
+.form__lists {
+  display: flex;
+  justify-content: space-between;
+}
+
+.form__list {
+  width: 48%;
+  height: 10rem;
+  border: 2px solid black;
+  overflow: auto;
+}
+
+.form__list-head {
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+  background-color: lightgray;
+  padding: 2px;
+  border-bottom: 2px solid black;
+  font-weight: bolder;
+}
+
+.form__list-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.form__buttons {
+    display: flex;
+    justify-content: space-between;    
+}
+
+.form__button {
+    width: 48%;
+    height: 3rem;
+    padding: 5px;
+    background-color: lightgray;
+}
+
+.form__button:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/*Переполнение с многоточием */
+.overflow-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 </style>

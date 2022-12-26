@@ -15,7 +15,8 @@
       @research-click="onResearchClick"/>
     </div>
   </main>
-  <ResearchForm v-if="isResearchFormVisible" :research-data="currentResearchData"/>
+  <ResearchForm v-if="isResearchFormVisible" :research-data="currentResearchData"
+  @form-close="onResearchFormClose"/>
 </template>
 
 <script>
@@ -210,10 +211,12 @@ export default {
         this.currentResearchData = {research: researchResponse.data[0]}; 
 
         const dataList = ['bioMaterials', 
-          'materials', 
+          'materials',
+          'category', 
           'bioMaterialsList', 
           'materialsList',
-          'laboratoriesList'
+          'laboratoriesList',
+          'categoriesList'
         ];
           
         const responses = await Promise.all([
@@ -223,22 +226,32 @@ export default {
           //Материалы исследования
           this.api.get(`lab_research?id_lr=eq.${researchId}
             &select=id_lr, use_m(*, materials(id_m, name_m))`),
-          //Список биоматериалов
-          this.api.get(`bio_materials?`), 
-          //Список материалов
-          this.api.get(`materials?`),
-          //Список лабораторий
-          this.api.get(`laboratories?`),         
+          //Категория исследования
+          this.api.get(`lab_research?id_lr=eq.${researchId}
+            &select=id_lr, category_lr(id_clr, name_clr)`),  
+
+          // //Список биоматериалов
+          // this.api.get(`bio_materials?order=name_bm.asc`), 
+          // //Список материалов
+          // this.api.get(`materials?order=name_m.asc`),
+          // //Список лабораторий
+          // this.api.get(`laboratories?order=name_lab.asc`),
+          // //Список категорий
+          // this.api.get('category_lr?')         
         ]);  
         
         for(let i=0; i<responses.length; i++) {
-          this.currentResearchData[dataList[i]] = responses[i].data;
+          this.currentResearchData[dataList[i]] = responses[i].data[0];
         }
       }
         
       this.isResearchFormVisible = true;
 
       console.log(this.currentResearchData);
+    },
+    onResearchFormClose(result){
+      this.isResearchFormVisible = false;
+      console.log(result);
     }
   },
   components: {
