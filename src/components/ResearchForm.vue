@@ -10,9 +10,12 @@
                <label for='categoryResearchField'>
                     {{ 'Категория:' }}
                </label>
-               <select id="categoryResearchField">
-                    <option :value="researchData['category']['category_lr']['id_clr']">
-                        {{ researchData['category']['category_lr']['name_clr'] }}
+               <select id="categoryResearchField" @click="loadCategories" 
+               @change="dirtyMap['lab_research'] = true"
+               v-model="researchData['lab_research']['id_clr']">
+                    <option v-for="category in categories" :key="category['id_clr']"
+                    :value="category['id_clr']">
+                        {{ category['name_clr'] }}
                     </option>               
                </select>
             </div>
@@ -23,8 +26,10 @@
                <label :for="key+'ResearchField'">
                     {{ value+':' }}
                </label>
-               <input :id="key+'ResearchField'" :value="researchData['research'][key]"
-               :type="typeof(researchData['research'][key]) == 'boolean' ? 'checkbox' : 'text'">
+               <input :id="key+'ResearchField'" :value="researchData['lab_research'][key]"
+               v-model="researchData['lab_research'][key]"
+               @change="dirtyMap['lab_research'] = true"
+               :type="typeof(researchData['lab_research'][key]) == 'boolean' ? 'checkbox' : 'text'">
             </div>
 
             <!--Список био материалов-->
@@ -37,12 +42,14 @@
                         <button @click.prevent> {{ 'Добавить' }}</button>
                     </div>
                     <ul class="form__list-body">
-                        <li v-for="bioMaterial in researchData['bioMaterials']['bm_of_study']"
+                        <li v-for="bioMaterial in researchData['bm_of_study']"
                         :key="bioMaterial['id_bms']" class="form__list-item">
-                            <div class="oveflow-ellipsis">
+                            <div class="oveflow-ellipsis"
+                            :style="bioMaterial['na'] ? {} : {'font-weight': 'bolder'}">   
                                 {{ bioMaterial['bio_materials']['name_bm']}}
                             </div>
-                            <Close/>
+                            <Done v-if="material['na']"/>
+                            <Close v-else/>
                         </li>
                     </ul>
                 </div>
@@ -56,22 +63,28 @@
                         <button @click.prevent> {{ 'Добавить' }}</button>
                     </div>
                     <ul class="form__list-body">
-                        <li v-for="material in researchData['materials']['use_m']"
+                        <li v-for="material in researchData['use_m']"
                         :key="material['id_um']" class="form__list-item">
-                            <div class="oveflow-ellipsis">
+                            <div class="oveflow-ellipsis" 
+                            :style="material['na'] ? {} : {'font-weight': 'bolder'} ">
                                 {{ material['materials']['name_m']}}
                             </div>
-                            <Close/>
+                            <Done v-if="material['na']"/>
+                            <Close v-else/>
                         </li>
                     </ul>
                 </div>
-            </div>
+            </div> 
 
             <!--Окно с таблицей-->
             <div class="form__table-window">
                 <div class="form__table-name">
-                    Нюансы исследований
+                    <div class="form__table-name-text">
+                        Нюансы исследований
+                    </div>
+                    <button @click.prevent>Добавить</button>
                 </div>
+                
                 <div class="form__table-container">
                     
                     <table class="form__table">
@@ -86,8 +99,9 @@
                         </thead>
                         <tbody>
                             <tr v-for="researchOption in 
-                            researchData['research']['laboratorys_options']"
-                            :key="researchOption['id_lo']">
+                            researchData['laboratorys_options']"
+                            :key="researchOption['id_lo']"
+                            :style="researchOption['na'] ? {} : {'font-weight': 'bolder'} ">
                                 <td v-for="(value, key) in visibleOptionFieldMap"
                                 :key="key">
                                     <div class="cell">
@@ -114,10 +128,11 @@
 </template>
 
 <script>
+import Done from 'vue-material-design-icons/Close.vue';
 import Close from 'vue-material-design-icons/Close.vue';
 
 export default {
-    props: ['researchData', 'api'],
+    props: ['data', 'api'],
     emits: ['formClose'],
     data(){
         return {
@@ -136,22 +151,47 @@ export default {
                 'fast_exec_cost': 'Цена быстрого исследования',
                 'fast_exec_time': 'Срок быстрого исследования'
             },
-            result: {
-                result: false
-            }
+            dirtyMap: {
+                'lab_research': false,
+                'bm_of_study': false,
+                'use_m': false,
+                'laboratorys_options': false
+            },
+            newData: {},
+            researchData: JSON.parse(JSON.stringify(this.data)),
+            categories: [this.data['category_lr']]
         };
-    },
+    },  
     methods: {
+        async loadCategories(){
+            const categoryResponse = await this.api.get('category_lr?order=name_clr.asc');
+
+            this.categories = categoryResponse.data;
+        },
         onButtonClick(flag){
             if(flag){
-                this.result['result'] = true;
+               for(let key in this.dirtyMap) {
+                    if (this.dirtyMap[key]) {
+                        this.newData[key] = this.researchData[key];
+
+                        //Удаляем лишние поля
+                        if (key == 'bm_of_study') {
+                            delete this.newData[key]['bio_materials'];
+                        } else if (key == 'use_m') {
+                            delete this.newData[key]['materials']; 
+                        } else if (key == 'laboratorys_options') {
+                            delete this.newData[key]['laboratories'];
+                        }
+                    }
+               }
             }
 
-            this.$emit('formClose', this.result);
+            this.$emit('formClose', this.newData);
         }
     },
     components: {
-        Close
+        Close,
+        Done
     }
 }
 </script>

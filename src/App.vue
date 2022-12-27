@@ -123,6 +123,7 @@ ol[class] {
   justify-content: space-between;
 }
 
+/*Таблица в форме */
 .form__table-window {
   border: 2px solid black;
 }
@@ -135,11 +136,18 @@ ol[class] {
 }
 
 .form__table-name {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
   background-color: lightgray;
   font-weight: bolder;
   border-bottom: 2px solid black;
+  padding: 2px;
 }
+
+.form__table-name-text {
+  text-align: center;
+}
+/* */
 
 .form__buttons {
     display: flex;

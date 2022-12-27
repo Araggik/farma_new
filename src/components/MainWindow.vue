@@ -15,7 +15,7 @@
       @research-click="onResearchClick"/>
     </div>
   </main>
-  <ResearchForm v-if="isResearchFormVisible" :research-data="currentResearchData"
+  <ResearchForm v-if="isResearchFormVisible" :data="currentResearchData"
   @form-close="onResearchFormClose" :api="api"/>
 </template>
 
@@ -208,19 +208,19 @@ export default {
           &select=*,laboratorys_options(*,laboratories(id_labs,name_lab))`);
 
       if (researchResponse.data.length > 0){
-        this.currentResearchData = {research: researchResponse.data[0]}; 
+        this.currentResearchData = {'laboratorys_options' : researchResponse.data[0]['laboratorys_options']};
 
-        const dataList = ['bioMaterials', 
-          'materials',
-          'category', 
-          'bioMaterialsList', 
-          'materialsList',
-          'laboratoriesList',
-          'categoriesList'
+        this.currentResearchData['lab_research'] =  researchResponse.data[0];
+        
+        delete this.currentResearchData['lab_research']['laboratorys_options'];
+
+        const dataList = ['bm_of_study', 
+          'use_m',
+          'category_lr', 
         ];
           
         const responses = await Promise.all([
-          //Био матералы исследования
+          //Био материалы исследования
           this.api.get(`lab_research?id_lr=eq.${researchId}
             &select=id_lr, bm_of_study(*,bio_materials(id_bm, name_bm))`),
           //Материалы исследования
@@ -241,16 +241,15 @@ export default {
         ]);  
         
         for(let i=0; i<responses.length; i++) {
-          this.currentResearchData[dataList[i]] = responses[i].data[0];
+          this.currentResearchData[dataList[i]] = responses[i].data[0][dataList[i]];
         }
       }
         
       this.isResearchFormVisible = true;
-
-      console.log(this.currentResearchData);
     },
     onResearchFormClose(result){
       this.isResearchFormVisible = false;
+      console.log('form close');
       console.log(result);
     }
   },
