@@ -79,11 +79,26 @@
                         <div>
                             {{ 'Расходные материалы' }}
                         </div>         
-                        <button @click.prevent="onAddMaterial('materials')"> 
+                        <button @click.prevent="onAddMaterial()"> 
                             {{ 'Добавить' }}
                         </button>
                     </div>
                     <ul class="form__list-body">
+                        <li v-if="isMaterialAdding" class="form__list-item">
+                            <select v-model="newMaterial" class="adding-select 
+                            overflow-ellipsis">
+                                <option v-for="material in materials"
+                                :key="material['id_m']"
+                                :value="material">
+                                    {{ material['name_m'] }}
+                                </option>
+                            </select>
+                            <div class="icons">
+                                <Done class="icon" @click="onAddedMaterial(true)"></Done>
+                                <Close class="icon" @click="onAddedMaterial(false)"></Close>
+                            </div>                           
+                        </li>
+
                         <li v-for="material in naSortedMaterials"
                         :key="material['id_um']" class="form__list-item">
                             <div class="oveflow-ellipsis" 
@@ -183,6 +198,7 @@ export default {
             isBioMaterialAdding: false,
             isMaterialAdding: false,
             newBioMaterial: null,
+            newMaterial: null,
             materials: [],
             bioMaterials: [],
             categories: [this.data['category_lr']]
@@ -203,11 +219,27 @@ export default {
         }
     }, 
     methods: {
+        onAddedMaterial(isAdded) {
+            if (isAdded) {
+                this.researchData['use_m'].push({
+                    'id_lr': this.researchData['lab_research']['id_lr'],
+                    'id_m': this.newMaterial['id_m'],
+                    'na': false,
+                    'qty_m': 1,
+                    'materials': {
+                        'name_m': this.newMaterial['name_m']
+                    }
+                });
+            }
+
+            this.isMaterialAdding = false;
+        },
         onAddedBioMaterial(isAdded) {
             if (isAdded) {
                 this.researchData['bm_of_study'].push({
                     'id_lr': this.researchData['lab_research']['id_lr'],
                     'id_bm': this.newBioMaterial['id_bm'],
+                    'na': false,
                     'bio_materials': {
                         'name_bm': this.newBioMaterial['name_bm']
                     }
@@ -228,6 +260,18 @@ export default {
                 this.isBioMaterialAdding = true;
             }
         },
+        async onAddMaterial() {
+            if ( !this.isMaterialAdding) {
+                const materialsResponse = await 
+                    this.api.get('materials?order=name_m.asc');
+
+                this.materials = materialsResponse.data;
+
+                this.newMaterial = this.materials[0];
+
+                this.isMaterialAdding = true;
+            }
+        },
         sortNaEntities(a, b){
             if (a['na'] && !b['na'])
                 return 1;
@@ -240,27 +284,40 @@ export default {
 
             this.categories = categoryResponse.data;
         },
-        onButtonClick(/*flag*/){
-            // if(flag){
-            //    for(let key in this.dirtyMap) {
-            //         if (this.dirtyMap[key]) {
-            //             this.newData[key] = this.researchData[key];
+        onButtonClick(flag){
+            if(flag){
+               for(let key in this.dirtyMap) {
+                    if (this.dirtyMap[key]) {
+                        this.newData[key] = this.researchData[key];
 
-            //             //Удаляем лишние поля
-            //             if (key == 'bm_of_study') {
-            //                 delete this.newData[key]['bio_materials'];
-            //             } else if (key == 'use_m') {
-            //                 delete this.newData[key]['materials']; 
-            //             } else if (key == 'laboratorys_options') {
-            //                 delete this.newData[key]['laboratories'];
-            //             }
-            //         }
-            //    }
-            // }
+                        //Удаляем лишние поля
+                        if (key == 'bm_of_study') {
+                            this.newData['bm_of_study'] = {
+                                'addItems': [],
+                                'deleteItems': []
+                            };
 
-            //this.$emit('formClose', this.newData);
+                            for(let study in this.researchData['bm_of_study']){
+                                delete study['bio_materials'];
+                                if (study['na']) {
+                                    
+                                }
+                            }
+                            delete this.newData[key]['bio_materials'];
+                        } else if (key == 'use_m') {
+                            delete this.newData[key]['materials']; 
+                        } else if (key == 'laboratorys_options') {
+                            delete this.newData[key]['laboratories'];
+                        }
+                    }
+               }
+            }
 
-            this.$emit('formClose', this.researchData);
+
+
+            this.$emit('formClose', this.newData);
+
+            //this.$emit('formClose', this.researchData);
         }
     },
     components: {
