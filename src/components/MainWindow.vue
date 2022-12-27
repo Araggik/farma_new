@@ -222,10 +222,10 @@ export default {
         const responses = await Promise.all([
           //Био материалы исследования
           this.api.get(`lab_research?id_lr=eq.${researchId}
-            &select=id_lr, bm_of_study(*,bio_materials(id_bm, name_bm))`),
+            &select=id_lr, bm_of_study(*,bio_materials(name_bm))`),
           //Материалы исследования
           this.api.get(`lab_research?id_lr=eq.${researchId}
-            &select=id_lr, use_m(*, materials(id_m, name_m))`),
+            &select=id_lr, use_m(*, materials(name_m))`),
           //Категория исследования
           this.api.get(`lab_research?id_lr=eq.${researchId}
             &select=id_lr, category_lr(id_clr, name_clr)`),  

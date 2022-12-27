@@ -39,17 +39,36 @@
                         <div>
                             {{ 'Био материалы' }}
                         </div>
-                        <button @click.prevent> {{ 'Добавить' }}</button>
+                        <button @click.prevent="onAddBioMaterial()"> 
+                            {{ 'Добавить' }}
+                        </button>
                     </div>
                     <ul class="form__list-body">
-                        <li v-for="bioMaterial in researchData['bm_of_study']"
+
+                        <li v-if="isBioMaterialAdding" class="form__list-item">
+                            <select v-model="newBioMaterial" class="adding-select 
+                            overflow-ellipsis">
+                                <option v-for="bioMaterial in bioMaterials"
+                                :key="bioMaterial['id_bm']"
+                                :value="bioMaterial">
+                                    {{ bioMaterial['name_bm'] }}
+                                </option>
+                            </select>
+                            <div class="icons">
+                                <Done class="icon" @click="onAddedBioMaterial(true)"></Done>
+                                <Close class="icon" @click="onAddedBioMaterial(false)"></Close>
+                            </div>                           
+                        </li>
+
+
+                        <li v-for="bioMaterial in naSortedBioMaterials"
                         :key="bioMaterial['id_bms']" class="form__list-item">
                             <div class="oveflow-ellipsis"
                             :style="bioMaterial['na'] ? {} : {'font-weight': 'bolder'}">   
                                 {{ bioMaterial['bio_materials']['name_bm']}}
                             </div>
-                            <Done v-if="material['na']"/>
-                            <Close v-else/>
+                            <Done v-if="bioMaterial['na']" @click="bioMaterial['na'] = false" class="icon"/>
+                            <Close v-else @click="bioMaterial['na'] = true" class="icon"/>
                         </li>
                     </ul>
                 </div>
@@ -60,17 +79,19 @@
                         <div>
                             {{ 'Расходные материалы' }}
                         </div>         
-                        <button @click.prevent> {{ 'Добавить' }}</button>
+                        <button @click.prevent="onAddMaterial('materials')"> 
+                            {{ 'Добавить' }}
+                        </button>
                     </div>
                     <ul class="form__list-body">
-                        <li v-for="material in researchData['use_m']"
+                        <li v-for="material in naSortedMaterials"
                         :key="material['id_um']" class="form__list-item">
                             <div class="oveflow-ellipsis" 
                             :style="material['na'] ? {} : {'font-weight': 'bolder'} ">
                                 {{ material['materials']['name_m']}}
                             </div>
-                            <Done v-if="material['na']"/>
-                            <Close v-else/>
+                            <Done v-if="material['na']" @click="material['na'] = false" class="icon"></Done>
+                            <Close v-else @click="material['na'] = true" class="icon"></Close>
                         </li>
                     </ul>
                 </div>
@@ -99,7 +120,7 @@
                         </thead>
                         <tbody>
                             <tr v-for="researchOption in 
-                            researchData['laboratorys_options']"
+                            naSortedOptions"
                             :key="researchOption['id_lo']"
                             :style="researchOption['na'] ? {} : {'font-weight': 'bolder'} ">
                                 <td v-for="(value, key) in visibleOptionFieldMap"
@@ -128,8 +149,8 @@
 </template>
 
 <script>
-import Done from 'vue-material-design-icons/Close.vue';
 import Close from 'vue-material-design-icons/Close.vue';
+import Done from 'vue-material-design-icons/Check.vue';
 
 export default {
     props: ['data', 'api'],
@@ -159,39 +180,92 @@ export default {
             },
             newData: {},
             researchData: JSON.parse(JSON.stringify(this.data)),
+            isBioMaterialAdding: false,
+            isMaterialAdding: false,
+            newBioMaterial: null,
+            materials: [],
+            bioMaterials: [],
             categories: [this.data['category_lr']]
         };
-    },  
+    },
+    computed: {
+        naSortedBioMaterials(){
+            // eslint-disable-next-line
+            return this.researchData['bm_of_study'].sort(this.sortNaEntities);
+        },
+        naSortedMaterials(){
+            // eslint-disable-next-line
+            return this.researchData['use_m'].sort(this.sortNaEntities);
+        },
+        naSortedOptions(){
+            // eslint-disable-next-line
+            return this.researchData['laboratorys_options'].sort(this.sortNaEntities);
+        }
+    }, 
     methods: {
+        onAddedBioMaterial(isAdded) {
+            if (isAdded) {
+                this.researchData['bm_of_study'].push({
+                    'id_lr': this.researchData['lab_research']['id_lr'],
+                    'id_bm': this.newBioMaterial['id_bm'],
+                    'bio_materials': {
+                        'name_bm': this.newBioMaterial['name_bm']
+                    }
+                });
+            }
+
+            this.isBioMaterialAdding = false;
+        },
+        async onAddBioMaterial(){
+            if ( !this.isBioMaterialAdding) {
+                const bioMaterialsResponse = await 
+                    this.api.get('bio_materials?order=name_bm.asc');
+
+                this.bioMaterials = bioMaterialsResponse.data;
+
+                this.newBioMaterial = this.bioMaterials[0];
+
+                this.isBioMaterialAdding = true;
+            }
+        },
+        sortNaEntities(a, b){
+            if (a['na'] && !b['na'])
+                return 1;
+            if (!a['na'] && b['na'])    
+                return -1;
+            return 0;
+        },
         async loadCategories(){
             const categoryResponse = await this.api.get('category_lr?order=name_clr.asc');
 
             this.categories = categoryResponse.data;
         },
-        onButtonClick(flag){
-            if(flag){
-               for(let key in this.dirtyMap) {
-                    if (this.dirtyMap[key]) {
-                        this.newData[key] = this.researchData[key];
+        onButtonClick(/*flag*/){
+            // if(flag){
+            //    for(let key in this.dirtyMap) {
+            //         if (this.dirtyMap[key]) {
+            //             this.newData[key] = this.researchData[key];
 
-                        //Удаляем лишние поля
-                        if (key == 'bm_of_study') {
-                            delete this.newData[key]['bio_materials'];
-                        } else if (key == 'use_m') {
-                            delete this.newData[key]['materials']; 
-                        } else if (key == 'laboratorys_options') {
-                            delete this.newData[key]['laboratories'];
-                        }
-                    }
-               }
-            }
+            //             //Удаляем лишние поля
+            //             if (key == 'bm_of_study') {
+            //                 delete this.newData[key]['bio_materials'];
+            //             } else if (key == 'use_m') {
+            //                 delete this.newData[key]['materials']; 
+            //             } else if (key == 'laboratorys_options') {
+            //                 delete this.newData[key]['laboratories'];
+            //             }
+            //         }
+            //    }
+            // }
 
-            this.$emit('formClose', this.newData);
+            //this.$emit('formClose', this.newData);
+
+            this.$emit('formClose', this.researchData);
         }
     },
     components: {
         Close,
-        Done
+        Done,
     }
 }
 </script>
@@ -202,6 +276,10 @@ table, tr, td {
    border: 1px solid black;
 }
 
+.adding-select {
+    max-width: 80%;
+}
+
 .cell { 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -209,5 +287,14 @@ table, tr, td {
     height: 3rem;
     padding: 2px;
     text-align: center;
+}
+
+.icons {
+    display: flex;
+}
+
+.icon:hover {
+    background-color: lightgray;
+    cursor: pointer;
 }
 </style>

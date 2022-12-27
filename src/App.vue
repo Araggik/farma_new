@@ -121,6 +121,7 @@ ol[class] {
 .form__list-item {
   display: flex;
   justify-content: space-between;
+  max-width: 100%;
 }
 
 /*Таблица в форме */
