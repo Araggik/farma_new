@@ -67,8 +67,10 @@
                             :style="bioMaterial['na'] ? {} : {'font-weight': 'bolder'}">   
                                 {{ bioMaterial['bio_materials']['name_bm']}}
                             </div>
-                            <Done v-if="bioMaterial['na']" @click="bioMaterial['na'] = false" class="icon"/>
-                            <Close v-else @click="bioMaterial['na'] = true" class="icon"/>
+                            <Done v-if="bioMaterial['na']" class="icon"
+                            @click="onClickIcon(bioMaterial, false, 'bm_of_study')" />
+                            <Close v-else class="icon"
+                            @click="onClickIcon(bioMaterial, true, 'bm_of_study')"/>
                         </li>
                     </ul>
                 </div>
@@ -105,8 +107,10 @@
                             :style="material['na'] ? {} : {'font-weight': 'bolder'} ">
                                 {{ material['materials']['name_m']}}
                             </div>
-                            <Done v-if="material['na']" @click="material['na'] = false" class="icon"></Done>
-                            <Close v-else @click="material['na'] = true" class="icon"></Close>
+                            <Done v-if="material['na']" class="icon"
+                            @click="onClickIcon(material, false, 'use_m')"/>
+                            <Close v-else class="icon"
+                            @click="onClickIcon(material, true, 'use_m')"/>
                         </li>
                     </ul>
                 </div>
@@ -140,7 +144,7 @@
                             :style="researchOption['na'] ? {} : {'font-weight': 'bolder'} ">
                                 <td v-for="(value, key) in visibleOptionFieldMap"
                                 :key="key">
-                                    <div class="cell">
+                                    <div class="cell">                                        
                                         {{ researchOption[key] }}
                                     </div>                                  
                                 </td>
@@ -193,7 +197,7 @@ export default {
                 'use_m': false,
                 'laboratorys_options': false
             },
-            newData: {},
+            newData: [],
             researchData: JSON.parse(JSON.stringify(this.data)),
             isBioMaterialAdding: false,
             isMaterialAdding: false,
@@ -219,6 +223,11 @@ export default {
         }
     }, 
     methods: {
+        onClickIcon(element, value, table){
+            element['na'] = value;
+
+            this.dirtyMap[table] = true;
+        },
         onAddedMaterial(isAdded) {
             if (isAdded) {
                 this.researchData['use_m'].push({
@@ -230,6 +239,8 @@ export default {
                         'name_m': this.newMaterial['name_m']
                     }
                 });
+
+                this.dirtyMap['use_m'] = true
             }
 
             this.isMaterialAdding = false;
@@ -244,6 +255,8 @@ export default {
                         'name_bm': this.newBioMaterial['name_bm']
                     }
                 });
+
+                this.dirtyMap['bm_of_study'] = true;
             }
 
             this.isBioMaterialAdding = false;
@@ -288,32 +301,47 @@ export default {
             if(flag){
                for(let key in this.dirtyMap) {
                     if (this.dirtyMap[key]) {
-                        this.newData[key] = this.researchData[key];
+                        let tableChanges = {
+                            'table': key,
+                            'postItems': [],
+                            'deleteItems': []  
+                        };
 
-                        //Удаляем лишние поля
-                        if (key == 'bm_of_study') {
-                            this.newData['bm_of_study'] = {
-                                'addItems': [],
-                                'deleteItems': []
-                            };
+                        if (key == 'lab_research') {
 
-                            for(let study in this.researchData['bm_of_study']){
-                                delete study['bio_materials'];
-                                if (study['na']) {
-                                    
-                                }
-                            }
-                            delete this.newData[key]['bio_materials'];
-                        } else if (key == 'use_m') {
-                            delete this.newData[key]['materials']; 
+                            tableChanges['postItems'].push(this.researchData['lab_research']);
+
                         } else if (key == 'laboratorys_options') {
-                            delete this.newData[key]['laboratories'];
+
+                            for(let option of this.researchData['laboratorys_options']) {
+                                delete option['laboratories'];
+                            }
+                            tableChanges['postItems'] = this.researchData['laboratorys_options'];
+
+                        } else if (key == 'bm_of_study' || key == 'use_m') {
+
+                            const deleteKey = (key == 'bm_of_study') ? 'bio_materials' 
+                                : 'materials';
+
+                            for(let element of this.researchData[key]) {
+                                delete element[deleteKey];
+
+                                if (element['na']) {
+                                    tableChanges['deleteItems'].push(element);
+                                    
+                                } else {
+                                    tableChanges['postItems'].push(element);
+                                }
+
+                                delete element['na'];
+                            }
+
                         }
+
+                        this.newData.push(tableChanges);                  
                     }
                }
             }
-
-
 
             this.$emit('formClose', this.newData);
 

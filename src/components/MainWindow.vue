@@ -228,16 +228,7 @@ export default {
             &select=id_lr, use_m(*, materials(name_m))`),
           //Категория исследования
           this.api.get(`lab_research?id_lr=eq.${researchId}
-            &select=id_lr, category_lr(id_clr, name_clr)`),  
-
-          // //Список биоматериалов
-          // this.api.get(`bio_materials?order=name_bm.asc`), 
-          // //Список материалов
-          // this.api.get(`materials?order=name_m.asc`),
-          // //Список лабораторий
-          // this.api.get(`laboratories?order=name_lab.asc`),
-          // //Список категорий
-          // this.api.get('category_lr?')         
+            &select=id_lr, category_lr(id_clr, name_clr)`),       
         ]);  
         
         for(let i=0; i<responses.length; i++) {
@@ -247,10 +238,10 @@ export default {
         
       this.isResearchFormVisible = true;
     },
-    onResearchFormClose(result){
+    onResearchFormClose(newData){
       this.isResearchFormVisible = false;
       console.log('form close');
-      console.log(result);
+      console.log(newData);
     }
   },
   components: {
