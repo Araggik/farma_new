@@ -125,6 +125,7 @@ ol[class] {
 .form__list-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   width: 100%;
 }
 
@@ -175,5 +176,6 @@ ol[class] {
 .overflow-ellipsis {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>

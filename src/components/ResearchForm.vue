@@ -6,10 +6,15 @@
             </div>
 
             <!--Select для категории-->
-            <div class="form__field">
-               <label for='categoryResearchField'>
+            <div class="form__field overflow-ellipsis">
+               {{ 'Категория: '+researchData['category_lr']['name_clr'] }}
+
+
+               <!-- <label for='categoryResearchField'>
                     {{ 'Категория:' }}
                </label>
+
+               
                <select id="categoryResearchField" @click="loadCategories" 
                @change="dirtyMap['lab_research'] = true"
                v-model="researchData['lab_research']['id_clr']">
@@ -17,7 +22,7 @@
                     :value="category['id_clr']">
                         {{ category['name_clr'] }}
                     </option>               
-               </select>
+               </select> -->
             </div>
 
             <!--Поля исследования-->
@@ -62,7 +67,7 @@
 
                         <li v-for="bioMaterial in naSortedBioMaterials"
                         :key="bioMaterial['id_bms']" class="form__list-item">
-                            <div class="oveflow-ellipsis"
+                            <div class="overflow-ellipsis"
                             :style="bioMaterial['na'] ? {} : {'font-weight': 'bolder'}">   
                                 {{ bioMaterial['bio_materials']['name_bm']}}
                             </div>
@@ -93,6 +98,8 @@
                                     {{ material['name_m'] }}
                                 </option>
                             </select>
+                            <input v-model.number="newMaterialCount"
+                            class="material-input-count">
                             <div class="icons">
                                 <Done class="icon" @click="onAddedMaterial(true)"></Done>
                                 <Close class="icon" @click="onAddedMaterial(false)"></Close>
@@ -101,9 +108,12 @@
 
                         <li v-for="material in naSortedMaterials"
                         :key="material['id_um']" class="form__list-item">
-                            <div class="oveflow-ellipsis" 
+                            <div class="material-name overflow-ellipsis"  
                             :style="material['na'] ? {} : {'font-weight': 'bolder'} ">
                                 {{ material['materials']['name_m']}}
+                            </div>
+                            <div class="overflow-ellipsis">
+                                {{ material['qty_m']  }}
                             </div>
                             <Done v-if="material['na']" class="icon"
                             @click="onClickIcon(material, false, 'use_m')"/>
@@ -118,7 +128,7 @@
             <div class="form__table-window">
                 <div class="form__table-name">
                     <div class="form__table-name-text">
-                        Нюансы исследований
+                        Лаборатории
                     </div>
                     <button @click.prevent="addLaboratoryOption">Добавить</button>
                 </div>
@@ -128,11 +138,23 @@
                     <table class="form__table">
                         <thead>
                             <tr>
-                                <td v-for="value in visibleOptionFieldMap" :key="value">
-                                    <div class="cell">
-                                        {{ value }}
-                                    </div>                          
-                                </td>  
+                                <td v-for="(value, key) in columnNameAndSpan" 
+                                :key="key" :rowspan="value['rowSpan']"
+                                :colspan="value['columnSpan']">
+                                    <div class="cell cell_expanded">
+                                        {{ key }}
+                                    </div> 
+                                </td>
+                            </tr>
+                            <tr>
+                                <template v-for="(value, key) in visibleOptionFieldMap"
+                                :key="key">
+                                    <td v-if="!(value in columnNameAndSpan)">
+                                        <div class="cell">
+                                            {{ value }}
+                                        </div> 
+                                    </td>
+                                </template>
                             </tr>
                         </thead>
                         <tbody>
@@ -197,18 +219,44 @@ export default {
                 'name_lr': 'Короткое имя',
                 'full_name_lr': 'Полное имя',
                 'desc_lr': 'Описание',
-                'na': 'Не активно'
+                'na': 'Удалено'
             },
-            visibleOptionFieldMap: {
-                'na': 'Не активно',
-                'id_labs': 'Название лаборатории',
-                'code_l': 'Код исследования',
-                'old_code_l': 'Старый код исследования',
-                'cost_lo': 'Цена исследования',
-                'lead_time': 'Срок исследования',
-                'fast_execution': 'Быстрое исследование',
-                'fast_exec_cost': 'Цена быстрого исследования',
-                'fast_exec_time': 'Срок быстрого исследования'
+            visibleOptionFieldMap: {            
+                'id_labs': 'Лаборатория',
+                'code_l': 'Код',
+                'old_code_l': 'Старый код',
+                'cost_lo': 'Цена',
+                'lead_time': 'Срок',
+                'fast_execution': 'Возможно',
+                'fast_exec_cost': 'Цена',
+                'fast_exec_time': 'Срок',
+                'na': 'Удалено',
+            },           
+            columnNameAndSpan: {
+                'Лаборатория': {
+                    rowSpan: 2,
+                    columnSpan: 1
+                },
+                'Код': {
+                    rowSpan: 2,
+                    columnSpan: 1
+                },
+                'Старый код': {
+                    rowSpan: 2,
+                    columnSpan: 1
+                },
+                'Обычное': {
+                    rowSpan: 1,
+                    columnSpan: 2
+                },
+                'Ускоренное': {
+                    rowSpan: 1,
+                    columnSpan: 3
+                },
+                'Удалено': {
+                    rowSpan: 2,
+                    columnSpan: 1
+                },
             },
             dirtyMap: {
                 'lab_research': false,
@@ -222,10 +270,11 @@ export default {
             isMaterialAdding: false,
             newBioMaterial: null,
             newMaterial: null,
+            newMaterialCount: 1,
             materials: [],
-            bioMaterials: [],
-            categories: [this.data['category_lr']],
-            laboratories: []
+            bioMaterials: [],         
+            laboratories: [],
+            //categories: [this.data['category_lr']],
         };
     },
     computed: {
@@ -254,7 +303,7 @@ export default {
                     'id_lr': this.researchData['lab_research']['id_lr'],
                     'id_m': this.newMaterial['id_m'],
                     'na': false,
-                    'qty_m': 1,
+                    'qty_m': this.newMaterialCount,
                     'materials': {
                         'name_m': this.newMaterial['name_m']
                     }
@@ -262,6 +311,8 @@ export default {
 
                 this.dirtyMap['use_m'] = true
             }
+
+            this.newMaterialCount = 1;
 
             this.isMaterialAdding = false;
         },
@@ -316,12 +367,7 @@ export default {
             const laboratoryResponse = await this.api.get('laboratories?order=name_lab.asc');
 
             this.laboratories = laboratoryResponse.data;
-        },
-        async loadCategories(){
-            const categoryResponse = await this.api.get('category_lr?order=name_clr.asc');
-
-            this.categories = categoryResponse.data;
-        },
+        },      
         async addLaboratoryOption(){
             await this.loadLaboratories();
            
@@ -399,9 +445,12 @@ export default {
             }
 
             this.$emit('formClose', this.newData);
+        },
+        // async loadCategories(){
+        //     const categoryResponse = await this.api.get('category_lr?order=name_clr.asc');
 
-            //this.$emit('formClose', this.researchData);
-        }
+        //     this.categories = categoryResponse.data;
+        // },
     },
     components: {
         Close,
@@ -423,13 +472,25 @@ select, option {
     white-space: nowrap;
 }
 
+.material-name {
+    width: 75%;
+}
+
+.material-input-count {
+    width: 15%;
+}
+
 .cell { 
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 7rem;
-    height: 3rem;
+    width: 6rem;
+    height: 2rem;
     padding: 2px;
     text-align: center;
+}
+
+.cell_expanded {
+    width: 100%;
 }
 
 .cell__input {
