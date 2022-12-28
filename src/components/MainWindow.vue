@@ -205,7 +205,7 @@ export default {
       //Получение исследования и опций по Id
       const researchResponse = await
         this.api.get(`lab_research?id_lr=eq.${researchId}
-          &select=*,laboratorys_options(*,laboratories(id_labs,name_lab))`);
+          &select=*,laboratorys_options(*,laboratories(name_lab))`);
 
       if (researchResponse.data.length > 0){
         this.currentResearchData = {'laboratorys_options' : researchResponse.data[0]['laboratorys_options']};
@@ -236,12 +236,34 @@ export default {
         }
       }
         
+      console.log(this.currentResearchData);
+
       this.isResearchFormVisible = true;
     },
     onResearchFormClose(newData){
       this.isResearchFormVisible = false;
+
       console.log('form close');
       console.log(newData);
+ 
+      //Запросы после изменения данных в форме
+      for(let element of newData){
+        if (element['postItems'].length > 0){
+
+          this.api.post(element['table'], element['postItems'], {
+            headers: {
+              'Prefer': 'resolution=merge-duplicates'
+            }
+          });
+        }
+        for(let deleteItem of element['deleteItems']){
+          let deleteUrlParams = '';
+          for(let key in deleteItem){
+            deleteUrlParams += key + '=eq.' + deleteItem[key] + '&';
+          }
+          this.api.delete(element['table']+'?'+deleteUrlParams);
+        }
+      }
     }
   },
   components: {

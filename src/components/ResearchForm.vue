@@ -122,7 +122,7 @@
                     <div class="form__table-name-text">
                         Нюансы исследований
                     </div>
-                    <button @click.prevent>Добавить</button>
+                    <button @click.prevent="addLaboratoryOption">Добавить</button>
                 </div>
                 
                 <div class="form__table-container">
@@ -143,9 +143,28 @@
                             :key="researchOption['id_lo']"
                             :style="researchOption['na'] ? {} : {'font-weight': 'bolder'} ">
                                 <td v-for="(value, key) in visibleOptionFieldMap"
-                                :key="key">
-                                    <div class="cell">                                        
-                                        {{ researchOption[key] }}
+                                :key="key">                                    
+                                    <div class="cell"> 
+                                        <select v-if="key == 'id_labs'"
+                                        v-model="researchOption['id_labs']"
+                                        @click="loadLaboratories"
+                                        @change="dirtyMap['laboratorys_options'] = true">
+                                            <template v-if="laboratories.length >0">
+                                                <option v-for="lab in laboratories"
+                                                :key="lab['id_labs']"
+                                                :value="lab['id_labs']" >
+                                                    {{ lab['name_lab'] }}
+                                                </option>
+                                            </template>
+                                            <option v-else :value="researchOption['id_labs']">
+                                                {{researchOption['laboratories']['name_lab']}}
+                                            </option>                                          
+                                        </select> 
+                                        <input v-else v-model="researchOption[key]"
+                                        class="cell__input"
+                                        :type="typeof(researchOption[key]) == 'boolean' ? 
+                                        'checkbox' : 'text'"
+                                        @change="dirtyMap['laboratorys_options'] = true">                                      
                                     </div>                                  
                                 </td>
                             </tr>
@@ -183,6 +202,8 @@ export default {
                 'na': 'Не активно'
             },
             visibleOptionFieldMap: {
+                'na': 'Не активно',
+                'id_labs': 'Название лаборатории',
                 'code_l': 'Код исследования',
                 'old_code_l': 'Старый код исследования',
                 'cost_lo': 'Цена исследования',
@@ -205,7 +226,8 @@ export default {
             newMaterial: null,
             materials: [],
             bioMaterials: [],
-            categories: [this.data['category_lr']]
+            categories: [this.data['category_lr']],
+            laboratories: []
         };
     },
     computed: {
@@ -292,10 +314,37 @@ export default {
                 return -1;
             return 0;
         },
+        async loadLaboratories(){
+            const laboratoryResponse = await this.api.get('laboratories?order=name_lab.asc');
+
+            this.laboratories = laboratoryResponse.data;
+        },
         async loadCategories(){
             const categoryResponse = await this.api.get('category_lr?order=name_clr.asc');
 
             this.categories = categoryResponse.data;
+        },
+        async addLaboratoryOption(){
+            await this.loadLaboratories();
+           
+            this.researchData['laboratorys_options'].push({
+                'id_lr': this.researchData['lab_research']['id_lr'],
+                'id_labs': this.laboratories[0]['id_labs'],
+                'code_l': '',
+                'old_code_l': '',
+                'desc_lo': '',
+                'fast_execution' : false,               
+                'cost_lo': 0,
+                'fast_exec_cost': 0,
+                'lead_time': 24,
+                'fast_exec_time': '',
+                'na': false,
+                'laboratories': {
+                    'name_lab': this.laboratories[0]['name_lab']
+                }
+            });
+
+            this.dirtyMap['laboratorys_options'] = true;
         },
         onButtonClick(flag){
             if(flag){
@@ -304,7 +353,7 @@ export default {
                         let tableChanges = {
                             'table': key,
                             'postItems': [],
-                            'deleteItems': []  
+                            'deleteItems': [],
                         };
 
                         if (key == 'lab_research') {
@@ -372,6 +421,10 @@ table, tr, td {
     height: 3rem;
     padding: 2px;
     text-align: center;
+}
+
+.cell__input {
+    max-width: 100%;
 }
 
 .icons {
