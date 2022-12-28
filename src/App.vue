@@ -118,10 +118,14 @@ ol[class] {
   font-weight: bolder;
 }
 
+.form__list-body {
+  width: 100%;
+}
+
 .form__list-item {
   display: flex;
   justify-content: space-between;
-  max-width: 100%;
+  width: 100%;
 }
 
 /*Таблица в форме */

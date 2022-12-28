@@ -236,26 +236,32 @@ export default {
         }
       }
         
-      console.log(this.currentResearchData);
-
       this.isResearchFormVisible = true;
     },
     onResearchFormClose(newData){
       this.isResearchFormVisible = false;
 
-      console.log('form close');
-      console.log(newData);
- 
       //Запросы после изменения данных в форме
       for(let element of newData){
-        if (element['postItems'].length > 0){
 
-          this.api.post(element['table'], element['postItems'], {
+        if (element['updateItems'].length > 0){
+
+          this.api.post(element['table'], element['updateItems'], {
             headers: {
               'Prefer': 'resolution=merge-duplicates'
             }
           });
         }
+
+        if (element['insertItems'].length > 0){
+
+          this.api.post(element['table'], element['insertItems'], {
+            headers: {
+              'Prefer': 'resolution=merge-duplicates'
+            }
+          });
+        }
+
         for(let deleteItem of element['deleteItems']){
           let deleteUrlParams = '';
           for(let key in deleteItem){
@@ -264,6 +270,8 @@ export default {
           this.api.delete(element['table']+'?'+deleteUrlParams);
         }
       }
+
+      this.refreshAll(this.currentCategoryId);
     }
   },
   components: {

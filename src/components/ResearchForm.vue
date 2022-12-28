@@ -46,8 +46,7 @@
                     <ul class="form__list-body">
 
                         <li v-if="isBioMaterialAdding" class="form__list-item">
-                            <select v-model="newBioMaterial" class="adding-select 
-                            overflow-ellipsis">
+                            <select v-model="newBioMaterial">
                                 <option v-for="bioMaterial in bioMaterials"
                                 :key="bioMaterial['id_bm']"
                                 :value="bioMaterial">
@@ -87,8 +86,7 @@
                     </div>
                     <ul class="form__list-body">
                         <li v-if="isMaterialAdding" class="form__list-item">
-                            <select v-model="newMaterial" class="adding-select 
-                            overflow-ellipsis">
+                            <select v-model="newMaterial">
                                 <option v-for="material in materials"
                                 :key="material['id_m']"
                                 :value="material">
@@ -352,34 +350,42 @@ export default {
                     if (this.dirtyMap[key]) {
                         let tableChanges = {
                             'table': key,
-                            'postItems': [],
+                            'updateItems': [],
+                            'insertItems': [],
                             'deleteItems': [],
                         };
 
                         if (key == 'lab_research') {
 
-                            tableChanges['postItems'].push(this.researchData['lab_research']);
+                            tableChanges['updateItems'].push(this.researchData['lab_research']);
 
                         } else if (key == 'laboratorys_options') {
 
                             for(let option of this.researchData['laboratorys_options']) {
                                 delete option['laboratories'];
+                                //Лучше использовать in
+                                if ('id_lo' in option){
+                                    tableChanges['updateItems'].push(option);
+                                } else {
+                                    tableChanges['insertItems'].push(option);
+                                }
                             }
-                            tableChanges['postItems'] = this.researchData['laboratorys_options'];
-
                         } else if (key == 'bm_of_study' || key == 'use_m') {
 
                             const deleteKey = (key == 'bm_of_study') ? 'bio_materials' 
                                 : 'materials';
 
+                            const nameFieldId =  (key == 'bm_of_study') ? 'id_bms' 
+                                : 'id_um';   
+
                             for(let element of this.researchData[key]) {
                                 delete element[deleteKey];
 
-                                if (element['na']) {
+                                if (element['na'] && (nameFieldId in element)) {
                                     tableChanges['deleteItems'].push(element);
                                     
-                                } else {
-                                    tableChanges['postItems'].push(element);
+                                } else if (!element['na'] && !(nameFieldId in element)){
+                                    tableChanges['insertItems'].push(element);
                                 }
 
                                 delete element['na'];
@@ -410,8 +416,11 @@ table, tr, td {
    border: 1px solid black;
 }
 
-.adding-select {
-    max-width: 80%;
+select, option {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .cell { 
