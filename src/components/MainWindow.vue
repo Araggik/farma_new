@@ -12,7 +12,7 @@
       <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"/>
       <ResearchWindow :research-list="mainCategoryResearches" 
       :laboratories-list="selectLaboratories" :max-laboratories="laboratories.length"
-      @research-click="onResearchClick"/>
+      @research-click="onResearchClick" @addClick="onAddResearchClick"/>
     </div>
   </main>
   <ResearchForm v-if="isResearchFormVisible" :data="currentResearchData"
@@ -238,13 +238,74 @@ export default {
         
       this.isResearchFormVisible = true;
     },
-    onResearchFormClose(newData){
+    async onAddResearchClick(){
+      this.currentResearchData = null;
+
+      const dataList = ['bm_of_study', 
+          'use_m',
+          'laboratorys_options', 
+      ];
+
+      for(let element in dataList) {
+        this.currentResearchData[element] = [];
+      }
+
+      const categoryResponse = await this.api.get('category_lr?limit=1&order=id_clr.asc');
+
+      this.currentResearchData['category_lr'] = categoryResponse.data;
+
+      this.currentResearchData['lab_research'] = {
+          'id_clr': this.currentResearchData['category_lr']['id_clr'],
+          'name_lr': 'Исследование',
+          'full_name_lr': '',
+          'desc_lr': '',
+          'for_mens': true,
+          'for_womens': true,
+          'current_laboratory': 1,
+          'na': false
+      };
+
+      this.isResearchFormVisible = true;
+    },
+    async onResearchFormClose(newData){
       this.isResearchFormVisible = false;
+
+      //Проверка на добавление нового исследования
+      const dataResearchIndex = newData.findIndex((el)=>el.table == 'lab_research');
+
+      const isNewResearch = (dataResearchIndex != -1) && 
+        !('id_lr' in newData[dataResearchIndex]['updateItems'][0]);
+
+      //Запрос на добавление нового исследования 
+      let newResearchId = -1;
+
+      if (isNewResearch) {
+        const researchResponse = await this.api.post('lab_research', 
+          newData[dataResearchIndex]['udpateItems'][0], 
+          {
+            headers: {
+                'Prefer': 'return=representation'
+            }
+          }
+        );
+
+        newResearchId = researchResponse.data['id_lr'];
+
+        newData.splice(dataResearchIndex, 1);
+      }
 
       //Запросы после изменения данных в форме
       for(let element of newData){
 
         if (element['updateItems'].length > 0){
+
+          //Добавить id_lr если новое исследование
+          if(isNewResearch){            
+            for (let el in element['updateItems']) {
+              el['id_lr'] = newResearchId;
+            }
+          }
+          
 
           this.api.post(element['table'], element['updateItems'], {
             headers: {
@@ -254,6 +315,12 @@ export default {
         }
 
         if (element['insertItems'].length > 0){
+
+          if(isNewResearch){            
+            for (let el in element['insertItems']) {
+              el['id_lr'] = newResearchId;
+            }
+          }
 
           this.api.post(element['table'], element['insertItems'], {
             headers: {

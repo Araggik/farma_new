@@ -8,7 +8,10 @@
                   {{ laboratory['name_lab'] }}
                </td>
 
-               <td class="research-table__research-td">Исследования</td>
+               <td class="research-table__research-td table-head-btn">
+                  <div>Исследования</div>
+                  <button @click="$emit('addClick')">Добавить</button>
+               </td>
             </tr>
          </thead>
          <tbody>
@@ -48,7 +51,7 @@ export default {
        laboratoriesList: Array,
        maxLaboratories: Number
    },
-   emits: ['researchClick'],
+   emits: ['researchClick', 'addClick'],
    methods: {
        findCodeByLab(research, lab) {
            const labOption = research["laboratorys_options"].find((el) => el["id_labs"] == lab["id_labs"]);
@@ -84,6 +87,12 @@ td {
 
 .research-table__research-td {
    width: 34em;
+}
+
+.table-head-btn {
+   display: flex;
+   justify-content: space-between;
+   border: none;
 }
 
 .category-header {

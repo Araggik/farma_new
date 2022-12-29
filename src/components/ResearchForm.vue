@@ -392,6 +392,11 @@ export default {
         },
         onButtonClick(flag){
             if(flag){
+               //При добавлении нового исследования
+               if (! ('id_lr' in this.researchData['lab_research'])){
+                    this.dirtyMap['lab_research'] = true;
+               }
+
                for(let key in this.dirtyMap) {
                     if (this.dirtyMap[key]) {
                         let tableChanges = {
