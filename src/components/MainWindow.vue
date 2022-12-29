@@ -200,8 +200,6 @@ export default {
         this.selectLaboratories = this.laboratories;   
     },
     async onResearchClick(researchId){
-      this.currentResearchData = null;
-
       //Получение исследования и опций по Id
       const researchResponse = await
         this.api.get(`lab_research?id_lr=eq.${researchId}
@@ -239,20 +237,20 @@ export default {
       this.isResearchFormVisible = true;
     },
     async onAddResearchClick(){
-      this.currentResearchData = null;
+      this.currentResearchData = {};
 
       const dataList = ['bm_of_study', 
           'use_m',
           'laboratorys_options', 
       ];
 
-      for(let element in dataList) {
+      for(let element of dataList) {
         this.currentResearchData[element] = [];
       }
 
       const categoryResponse = await this.api.get('category_lr?limit=1&order=id_clr.asc');
 
-      this.currentResearchData['category_lr'] = categoryResponse.data;
+      this.currentResearchData['category_lr'] = categoryResponse.data[0];
 
       this.currentResearchData['lab_research'] = {
           'id_clr': this.currentResearchData['category_lr']['id_clr'],
@@ -281,7 +279,7 @@ export default {
 
       if (isNewResearch) {
         const researchResponse = await this.api.post('lab_research', 
-          newData[dataResearchIndex]['udpateItems'][0], 
+          newData[dataResearchIndex]['updateItems'][0], 
           {
             headers: {
                 'Prefer': 'return=representation'
@@ -289,7 +287,7 @@ export default {
           }
         );
 
-        newResearchId = researchResponse.data['id_lr'];
+        newResearchId = researchResponse.data[0]['id_lr'];
 
         newData.splice(dataResearchIndex, 1);
       }
@@ -297,44 +295,49 @@ export default {
       //Запросы после изменения данных в форме
       for(let element of newData){
 
-        if (element['updateItems'].length > 0){
+        if (isNewResearch) {
 
-          //Добавить id_lr если новое исследование
-          if(isNewResearch){            
-            for (let el in element['updateItems']) {
+          if (element['insertItems'].length > 0){
+            //Добавить id_lr если новое исследование
+            for (let el of element['insertItems']) {
               el['id_lr'] = newResearchId;
             }
-          }
-          
 
-          this.api.post(element['table'], element['updateItems'], {
-            headers: {
-              'Prefer': 'resolution=merge-duplicates'
-            }
-          });
-        }
-
-        if (element['insertItems'].length > 0){
-
-          if(isNewResearch){            
-            for (let el in element['insertItems']) {
-              el['id_lr'] = newResearchId;
-            }
+            this.api.post(element['table'], element['insertItems'], {
+              headers: {
+                'Prefer': 'resolution=merge-duplicates'
+              }
+            });
           }
 
-          this.api.post(element['table'], element['insertItems'], {
-            headers: {
-              'Prefer': 'resolution=merge-duplicates'
-            }
-          });
-        }
+        } else {
 
-        for(let deleteItem of element['deleteItems']){
-          let deleteUrlParams = '';
-          for(let key in deleteItem){
-            deleteUrlParams += key + '=eq.' + deleteItem[key] + '&';
+          if (element['updateItems'].length > 0){
+
+            this.api.post(element['table'], element['updateItems'], {
+              headers: {
+                'Prefer': 'resolution=merge-duplicates'
+              }
+            });
           }
-          this.api.delete(element['table']+'?'+deleteUrlParams);
+
+          if (element['insertItems'].length > 0){
+
+            this.api.post(element['table'], element['insertItems'], {
+              headers: {
+                'Prefer': 'resolution=merge-duplicates'
+              }
+            });
+          }
+
+          for(let deleteItem of element['deleteItems']){
+            let deleteUrlParams = '';
+            for(let key in deleteItem){
+              deleteUrlParams += key + '=eq.' + deleteItem[key] + '&';
+            }
+            this.api.delete(element['table']+'?'+deleteUrlParams);
+          }
+
         }
       }
 

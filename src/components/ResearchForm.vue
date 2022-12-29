@@ -2,27 +2,32 @@
     <div class="modal-layout">
         <form class="form">
             <div class="form__head">
-                {{ 'Редактирование исследования' }}
+                {{ formName }}
             </div>
 
             <!--Select для категории-->
             <div class="form__field overflow-ellipsis">
-               {{ 'Категория: '+researchData['category_lr']['name_clr'] }}
 
-
-               <!-- <label for='categoryResearchField'>
-                    {{ 'Категория:' }}
-               </label>
-
+                <template v-if="!isNewResearch">
+                    {{ 'Категория: '+researchData['category_lr']['name_clr'] }}
+                </template>
                
-               <select id="categoryResearchField" @click="loadCategories" 
-               @change="dirtyMap['lab_research'] = true"
-               v-model="researchData['lab_research']['id_clr']">
-                    <option v-for="category in categories" :key="category['id_clr']"
-                    :value="category['id_clr']">
-                        {{ category['name_clr'] }}
-                    </option>               
-               </select> -->
+
+                <template v-else>
+                    <label for='categoryResearchField'>
+                        {{ 'Категория:' }}
+                    </label>
+
+                    
+                    <select id="categoryResearchField" @click="loadCategories" 
+                    @change="dirtyMap['lab_research'] = true"
+                    v-model="researchData['lab_research']['id_clr']">
+                            <option v-for="category in categories" :key="category['id_clr']"
+                            :value="category['id_clr']">
+                                {{ category['name_clr'] }}
+                            </option>               
+                    </select>
+                </template>          
             </div>
 
             <!--Поля исследования-->
@@ -214,7 +219,7 @@ export default {
     props: ['data', 'api'],
     emits: ['formClose'],
     data(){
-        return {
+        return {          
             visibleResearchFieldMap: {
                 'name_lr': 'Короткое имя',
                 'full_name_lr': 'Полное имя',
@@ -274,10 +279,18 @@ export default {
             materials: [],
             bioMaterials: [],         
             laboratories: [],
-            //categories: [this.data['category_lr']],
+            categories: [this.data['category_lr']],
         };
     },
     computed: {
+        isNewResearch(){
+            return !('id_lr' in this.researchData['lab_research']);
+        },
+        formName(){
+            return this.isNewResearch 
+                ? 'Добавление исследования'
+                : 'Редактирование исследования';
+        },
         naSortedBioMaterials(){
             // eslint-disable-next-line
             return this.researchData['bm_of_study'].sort(this.sortNaEntities);
@@ -393,7 +406,7 @@ export default {
         onButtonClick(flag){
             if(flag){
                //При добавлении нового исследования
-               if (! ('id_lr' in this.researchData['lab_research'])){
+               if (this.isNewResearch){
                     this.dirtyMap['lab_research'] = true;
                }
 
@@ -451,11 +464,11 @@ export default {
 
             this.$emit('formClose', this.newData);
         },
-        // async loadCategories(){
-        //     const categoryResponse = await this.api.get('category_lr?order=name_clr.asc');
+        async loadCategories(){
+            const categoryResponse = await this.api.get('category_lr?order=name_clr.asc');
 
-        //     this.categories = categoryResponse.data;
-        // },
+            this.categories = categoryResponse.data;
+        },
     },
     components: {
         Close,
@@ -489,7 +502,7 @@ select, option {
     overflow: hidden;
     text-overflow: ellipsis;
     width: 6rem;
-    height: 2rem;
+    height: 2.2rem;
     padding: 2px;
     text-align: center;
 }
