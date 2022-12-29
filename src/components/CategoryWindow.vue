@@ -2,7 +2,10 @@
    <div class="category-window">
       <div class="category-header">
          <p class="category-header__text">Категории</p>
-         <button class="category-header__btn">Добавить</button>
+         <button class="category-header__btn"
+         @click="$emit('addClick')">
+            Добавить
+         </button>
       </div>
 
       <ul class="first-category-list">
@@ -20,7 +23,7 @@ import CategoryTree from './CategoryTree.vue';
 
 export default {
    props: ['categoryTree'],
-   emits: ['changeCategory'],
+   emits: ['changeCategory','addClick'],
    components: {
     CategoryTree
    }

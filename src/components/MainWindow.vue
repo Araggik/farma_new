@@ -3,7 +3,8 @@
     <div class='main-window__left' :style='{flex: leftFraction}'>
       <input class='search-input' type="text" :placeholder="placeholderText"
       v-model="searchText">
-      <CategoryWindow :category-tree="categoryTree" @change-category="onChangeCategory"/>
+      <CategoryWindow :category-tree="categoryTree" @change-category="onChangeCategory"
+      @addClick="onAddCategoryClick"/>
     </div>
     <div class="main-window__separator">
 
@@ -15,12 +16,18 @@
       @research-click="onResearchClick" @addClick="onAddResearchClick"/>
     </div>
   </main>
+
   <ResearchForm v-if="isResearchFormVisible" :data="currentResearchData"
-  @form-close="onResearchFormClose" :api="api"/>
+  @research-form-close="onResearchFormClose" :api="api"/>
+
+  <CategoryForm v-if="isCategoryFormVisible" :data="currentCategoryData" :api="api"
+  @category-form-close="onCategoryFormClose"/>
 </template>
 
 <script>
 import axios from "axios";
+
+import CategoryForm from "./CategoryForm.vue";
 import CategoryWindow from './CategoryWindow.vue';
 import FilterField from './FilterField.vue';
 import ResearchForm from './ResearchForm.vue';
@@ -51,6 +58,7 @@ export default {
       //Выбранные лаборатории
       selectLaboratories: [],
       isResearchFormVisible: false,
+      isCategoryFormVisible: false,
       //Фильтры для сущностей в виде url параметров (NA и др.)
       allUrlParams: {
         category: [
@@ -254,7 +262,7 @@ export default {
 
       this.currentResearchData['lab_research'] = {
           'id_clr': this.currentResearchData['category_lr']['id_clr'],
-          'name_lr': 'Исследование',
+          'name_lr': 'Новое исследование',
           'full_name_lr': '',
           'desc_lr': '',
           'for_mens': true,
@@ -264,6 +272,16 @@ export default {
       };
 
       this.isResearchFormVisible = true;
+    },
+    onAddCategoryClick(){
+      this.currentCategoryData = {
+          'name_clr': 'Новая категория',
+          'id_parent': 0,
+          'na': false,
+          'parentName': '-'
+      };
+
+      this.isCategoryFormVisible = true;
     },
     async onResearchFormClose(newData){
       this.isResearchFormVisible = false;
@@ -342,9 +360,25 @@ export default {
       }
 
       this.refreshAll(this.currentCategoryId);
+    },
+    async onCategoryFormClose(newCategory){
+      this.isCategoryFormVisible = false;
+
+      console.log(newCategory);
+
+      if (newCategory) {
+        await this.api.post('category_lr', newCategory, {
+          headers: {
+            'Prefer': 'resolution=merge-duplicates'
+          }
+        });
+      }
+
+      this.refreshAll(this.currentCategoryId);
     }
   },
   components: {
+    CategoryForm,
     CategoryWindow,
     FilterField,
     ResearchWindow,

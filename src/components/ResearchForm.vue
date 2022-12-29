@@ -217,7 +217,7 @@ import Done from 'vue-material-design-icons/Check.vue';
 
 export default {
     props: ['data', 'api'],
-    emits: ['formClose'],
+    emits: ['researchFormClose'],
     data(){
         return {          
             visibleResearchFieldMap: {
@@ -462,7 +462,7 @@ export default {
                }
             }
 
-            this.$emit('formClose', this.newData);
+            this.$emit('researchFormClose', this.newData);
         },
         async loadCategories(){
             const categoryResponse = await this.api.get('category_lr?order=name_clr.asc');
