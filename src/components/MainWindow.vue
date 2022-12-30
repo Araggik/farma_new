@@ -101,6 +101,7 @@ export default {
 
         tree.push({
           category: element,
+          isCurrentCategory: element['id_clr'] == this.currentCategoryId,
           children: this.makeCategoryTree(
             categories, 
             element['id_clr'],
@@ -132,7 +133,7 @@ export default {
       //Получение исследований категории
       let researchResponse = await 
         this.api.get('lab_research?id_clr=eq.'+currentNode.category['id_clr']+this.researchUrlParams+
-          '&select=id_lr,name_lr, laboratorys_options(id_lo,code_l,id_labs)' +
+          '&select=id_lr,name_lr,current_laboratory, laboratorys_options(id_lo,code_l,id_labs)' +
           this.optionUrlParams
         );
 
@@ -166,6 +167,8 @@ export default {
     onChangeCategory(categoryId){  
       //Обновляем категории и проверям, что выбранная категория существует
       this.existCurrentCategoryId = false;
+
+      this.currentCategoryId = null;
 
       this.refreshAll(categoryId);
     },

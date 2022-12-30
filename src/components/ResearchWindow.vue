@@ -17,7 +17,8 @@
          <tbody>
             <template v-for="node in researchList" :key="node.category['id_clr']">
                <tr class="category-header" 
-               :class="{'category-header-main': node.category['id_parent'] == 0}"
+               :class="{'category-header-main': node.category['id_parent'] == 0,
+                  'category-header_blue': node['isCurrentCategory']}"
                :ref="node['isCurrentCategory'] ? 'currentCategory': null">
                   <td :colspan="laboratoriesList.length+1">
                      {{ node.category['name_clr'] }}
@@ -30,7 +31,9 @@
                   @click="$emit('researchClick', research['id_lr'])">
 
                      <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']"
-                     class="research-table__lab-td">
+                     class="research-table__lab-td"
+                     :class="{'research-table__lab-td_green':laboratory['id_labs'] 
+                     == research['current_laboratory'] }">
                         {{ findCodeByLab(research, laboratory) }}
                      </td>
                      <td class="research-table__research-td">
@@ -95,6 +98,10 @@ td {
    padding: 4px;
 }
 
+.research-table__lab-td_green {
+   background-color: rgba(109,254,168,255);
+}
+
 .research-table__research-td {
    width: 34em;
    padding: 4px;
@@ -109,6 +116,10 @@ td {
 .category-header {
    font-weight: bold;
    text-align: center;
+}
+
+.category-header_blue {
+   background-color: rgba(151,224,252,255);
 }
 
 .category-header-main {

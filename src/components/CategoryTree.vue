@@ -1,6 +1,7 @@
 <template>
     <li class="category-list__item">
-        <div class="category-name" @click="onClick">
+        <div class="category-name" @click="onClick" 
+        :class="{'category-name_blue': tree['isCurrentCategory'] }">
             <ChevronRight v-if="tree.children.length>0" 
             :class="{'rotated': isVisible}">
             </ChevronRight>
@@ -53,6 +54,10 @@ export default {
 .category-name:hover {
     cursor: pointer;
     text-decoration: underline;
+}
+
+.category-name_blue {
+    background-color: rgba(151,224,252,255);
 }
 
 .category-name__text_bold {
