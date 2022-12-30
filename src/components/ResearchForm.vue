@@ -9,12 +9,13 @@
             <div class="form__field overflow-ellipsis">
 
                 <template v-if="!isNewResearch">
-                    {{ 'Категория: '+researchData['category_lr']['name_clr'] }}
+                    <span class="form__field-label">Категория: </span>
+                    {{ researchData['category_lr']['name_clr'] }}
                 </template>
                
 
                 <template v-else>
-                    <label for='categoryResearchField'>
+                    <label for='categoryResearchField' class="form__field-label">
                         {{ 'Категория:' }}
                     </label>
 
@@ -33,13 +34,14 @@
             <!--Поля исследования-->
             <div v-for="(value, key) in visibleResearchFieldMap" :key="key"
             class="form__field">
-               <label :for="key+'ResearchField'">
+               <label :for="key+'ResearchField'" class="form__field-label">
                     {{ value+':' }}
                </label>
                <input :id="key+'ResearchField'" :value="researchData['lab_research'][key]"
                v-model="researchData['lab_research'][key]"
                @change="dirtyMap['lab_research'] = true"
-               :type="typeof(researchData['lab_research'][key]) == 'boolean' ? 'checkbox' : 'text'">
+               :type="typeof(researchData['lab_research'][key]) == 'boolean' ? 'checkbox' : 'text'"
+               :class="{'form__field-input': typeof(researchData['lab_research'][key]) != 'boolean'}">
             </div>
 
             <!--Список био материалов-->

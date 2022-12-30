@@ -31,12 +31,21 @@ export default {
 </script>
 
 <style scoped>
+.category-window {
+   border: 2px solid black;
+   background-color: white;
+}
+
 .category-header {
    display: flex;
+   border-bottom: 2px solid black;
+   padding: 2px;
 }
 
 .category-header__text {
    flex: 3;
+   font-weight: bolder;
+   font-size: 1.2rem;
 }
 
 .category-header__btn {

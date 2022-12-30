@@ -94,6 +94,15 @@ ol[class] {
 .form__field {
    display: flex;
    gap: 5px;
+   white-space: nowrap;
+}
+
+.form__field-label {
+    font-weight: bolder;
+}
+
+.form__field-input {
+    width: 100%;
 }
 
 .form__lists {

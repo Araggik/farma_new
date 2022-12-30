@@ -7,7 +7,7 @@
 
             <div class="form__field overflow-ellipsis">
 
-                <label for='parentCategoryField'>
+                <label for='parentCategoryField' class="form__field-label">
                     Категория-родитель:
                 </label>
                 
@@ -23,17 +23,18 @@
 
             <div class="form__field overflow-ellipsis">
 
-                <label for='name_clrCategoryField'>
+                <label for='name_clrCategoryField' class="form__field-label">
                     {{ 'Название:' }}
                 </label>
 
             
-               <input id='name_clrCategoryField' v-model="categoryData['name_clr']">      
+               <input id='name_clrCategoryField' v-model="categoryData['name_clr']"
+               class="form__field-input">     
             </div>
 
             <div class="form__field overflow-ellipsis">
 
-                <label for='name_clrCategoryField'>
+                <label for='name_clrCategoryField' class="form__field-label">
                     {{ 'Удалено:' }}
                 </label>
 
@@ -43,7 +44,7 @@
 
             <!--Кнопки формы-->
             <div class="form__buttons">
-                <button class="form__button" @click="onButtonClick(true)">
+                <button class="form__button" @click="onButtonClick(true)" type="submit">
                     {{ 'ОК' }}
                 </button>
                 <button class="form__button" @click="onButtonClick(false)">
@@ -87,11 +88,6 @@ export default {
             }];
             
             this.categories.push(...categoryResponse.data);
-        },
-        onSubmit(){
-            console.log('submit');
-
-            return true;
         },
         onButtonClick(flag){
             if (flag) {

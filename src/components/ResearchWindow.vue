@@ -17,7 +17,8 @@
          <tbody>
             <template v-for="node in researchList" :key="node.category['id_clr']">
                <tr class="category-header" 
-               :class="{'category-header-main': node.category['id_parent'] == 0}">
+               :class="{'category-header-main': node.category['id_parent'] == 0}"
+               :ref="node['isCurrentCategory'] ? 'currentCategory': null">
                   <td :colspan="laboratoriesList.length+1">
                      {{ node.category['name_clr'] }}
                   </td>
@@ -49,7 +50,7 @@ export default {
    props: {
        researchList: Array,
        laboratoriesList: Array,
-       maxLaboratories: Number
+       maxLaboratories: Number,
    },
    emits: ['researchClick', 'addClick'],
    methods: {
@@ -57,6 +58,10 @@ export default {
            const labOption = research["laboratorys_options"].find((el) => el["id_labs"] == lab["id_labs"]);
            return labOption ? labOption["code_l"] : "-";
        }
+   },
+   updated(){
+      if(this.$refs['currentCategory'] && this.$refs['currentCategory'][0])
+         this.$refs['currentCategory'][0]?.scrollIntoView({ behavior: 'smooth' });
    }
 }
 </script>
@@ -81,12 +86,18 @@ td {
    table-layout: fixed;
 }
 
+.research-table__head {
+   font-weight: bolder;
+}
+
 .research-table__lab-td {
    width: 5em;
+   padding: 4px;
 }
 
 .research-table__research-td {
    width: 34em;
+   padding: 4px;
 }
 
 .table-head-btn {

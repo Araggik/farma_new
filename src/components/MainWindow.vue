@@ -1,7 +1,7 @@
 <template>
   <main class='main-window'>
     <div class='main-window__left' :style='{flex: leftFraction}'>
-      <input class='search-input' type="text" :placeholder="placeholderText"
+      <input class='search-input main-window__search' type="text" :placeholder="placeholderText"
       v-model="searchText">
       <CategoryWindow :category-tree="categoryTree" @change-category="onChangeCategory"
       @addClick="onAddCategoryClick"/>
@@ -11,7 +11,7 @@
     </div>
     <div class="main-window__right" :style='{flex: rightFraction}'>
       <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"/>
-      <ResearchWindow :research-list="mainCategoryResearches" 
+      <ResearchWindow :research-list="mainCategoryResearches"
       :laboratories-list="selectLaboratories" :max-laboratories="laboratories.length"
       @research-click="onResearchClick" @addClick="onAddResearchClick"/>
     </div>
@@ -138,7 +138,11 @@ export default {
 
       const categoryResearches = researchResponse.data;
 
-      this.mainCategoryResearches.push({category: currentNode.category, researches: categoryResearches});
+      this.mainCategoryResearches.push({
+        category: currentNode.category, 
+        researches: categoryResearches,
+        isCurrentCategory: currentNode.category['id_clr'] == this.currentCategoryId
+      });
 
       //Подумать над использованием асинхронности
       for(let category of currentNode.children){
@@ -393,14 +397,25 @@ export default {
 </script>
 
 <style scoped>
+.main-window {
+  padding: 2px;
+  background-color: lightgray;
+}
+
+.main-window__search {
+  margin-bottom: 5px;
+}
+
 .main-window__left {
-  border: 2px solid black;
+  padding: 2px;
   overflow: auto;
 }
 
 .main-window__right {
   border: 2px solid black;
   overflow: auto;
+  padding: 2px;
+  background-color: white;
 }
 
 .main-window__separator {
@@ -416,5 +431,6 @@ export default {
 
 .search-input {
   width: 100%;
+  border: 2px solid black;
 }
 </style>
