@@ -10,9 +10,8 @@
 
       <ul class="first-category-list">
          <CategoryTree v-for="el in categoryTree" :key="el.category['id_clr']" :tree="el"
-         @category-click="(categoryId)=>
-            $emit('changeCategory', categoryId)
-         "/> 
+         @category-click="(categoryId)=> $emit('changeCategory', categoryId)"
+         @category-edit="(categoryId)=> $emit('categoryEdit', categoryId)"/>
       </ul>
         
    </div> 
@@ -23,7 +22,7 @@ import CategoryTree from './CategoryTree.vue';
 
 export default {
    props: ['categoryTree'],
-   emits: ['changeCategory','addClick'],
+   emits: ['changeCategory','addClick', 'categoryEdit'],
    components: {
     CategoryTree
    }

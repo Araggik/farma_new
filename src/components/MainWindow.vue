@@ -4,7 +4,7 @@
       <input class='search-input main-window__search' type="text" :placeholder="placeholderText"
       v-model="searchText">
       <CategoryWindow :category-tree="categoryTree" @change-category="onChangeCategory"
-      @addClick="onAddCategoryClick"/>
+      @addClick="onAddCategoryClick" @category-edit="onEditCategory"/>
     </div>
     <div class="main-window__separator">
 
@@ -280,6 +280,22 @@ export default {
 
       this.isResearchFormVisible = true;
     },
+    async onEditCategory(categoryId){
+      const categoryResponse = await this.api.get(`category_lr?id_clr=eq.${categoryId}`);
+
+      this.currentCategoryData = categoryResponse.data[0];
+
+      if (this.currentCategoryData['id_parent'] == 0) 
+        this.currentCategoryData['parentName'] = '-';
+      else {
+        const categoryParentResponse = await this.api.get(`category_lr?id_clr=eq.
+          ${this.currentCategoryData['id_parent']}`);
+
+        this.currentCategoryData['parentName'] = categoryParentResponse.data[0]['name_clr'];  
+      }  
+     
+      this.isCategoryFormVisible = true;
+    },
     onAddCategoryClick(){
       this.currentCategoryData = {
           'name_clr': 'Новая категория',
@@ -370,8 +386,6 @@ export default {
     },
     async onCategoryFormClose(newCategory){
       this.isCategoryFormVisible = false;
-
-      console.log(newCategory);
 
       if (newCategory) {
         await this.api.post('category_lr', newCategory, {

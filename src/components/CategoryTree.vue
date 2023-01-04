@@ -12,12 +12,15 @@
                     {{ tree.category['name_clr'] }}
                 </p>
             </div>
-            <Edit v-if="isEditVisible"></Edit>
+            <Edit v-if="isEditVisible" class="category-name__edit"
+            @click.stop="$emit('categoryEdit', tree.category['id_clr'])">
+            </Edit>
         </div>
         <ul v-if="tree.children.length >0" v-show="isVisible"
         class="category-list"  :class="{'category-list_margined': tree.category}">
             <CategoryTree v-for="el in tree.children" :key="el.category['id_clr']" :tree="el"
-            @category-click="(categoryId)=>$emit('categoryClick', categoryId)">
+            @category-click="(categoryId)=>$emit('categoryClick', categoryId)"
+            @category-edit="(categoryId)=>$emit('categoryEdit', categoryId)">
             </CategoryTree>
         </ul>   
     </li>
@@ -30,7 +33,7 @@ import ChevronRight from 'vue-material-design-icons/ChevronRight.vue';
 export default {
     name: 'CategoryTree',
     props: ['tree'],
-    emits:  ['categoryClick'],
+    emits:  ['categoryClick', 'categoryEdit'],
     data(){
         return {
             isVisible: false,
@@ -58,6 +61,7 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    height: 28px;
 }
 
 .category-name:hover {
@@ -71,10 +75,17 @@ export default {
 
 .category-name__text {
     display: flex;
+    line-height: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .category-name__text_bold {
     font-weight: bold;
+}
+
+.category-name__edit:hover {
+    background-color: lightgray;
 }
 
 /* .category-list {
