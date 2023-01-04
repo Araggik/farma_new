@@ -1,13 +1,18 @@
 <template>
     <li class="category-list__item">
         <div class="category-name" @click="onClick" 
-        :class="{'category-name_blue': tree['isCurrentCategory'] }">
-            <ChevronRight v-if="tree.children.length>0" 
-            :class="{'rotated': isVisible}">
-            </ChevronRight>
-            <p :class="{'category-name__text_bold': tree.category['id_parent'] == 0}">
-                {{ tree.category['name_clr'] }}
-            </p>  
+        :class="{'category-name_blue': tree['isCurrentCategory'] }"
+        @mouseover="isEditVisible = true"
+        @mouseleave="isEditVisible = false">
+            <div class="category-name__text">
+                <ChevronRight v-if="tree.children.length>0" 
+                :class="{'rotated': isVisible}">
+                </ChevronRight>
+                <p :class="{'category-name__text_bold': tree.category['id_parent'] == 0}">
+                    {{ tree.category['name_clr'] }}
+                </p>
+            </div>
+            <Edit v-if="isEditVisible"></Edit>
         </div>
         <ul v-if="tree.children.length >0" v-show="isVisible"
         class="category-list"  :class="{'category-list_margined': tree.category}">
@@ -19,6 +24,7 @@
 </template>
 
 <script>
+import Edit from 'vue-material-design-icons/BorderColor.vue';
 import ChevronRight from 'vue-material-design-icons/ChevronRight.vue';
 
 export default {
@@ -27,7 +33,8 @@ export default {
     emits:  ['categoryClick'],
     data(){
         return {
-            isVisible: false
+            isVisible: false,
+            isEditVisible: false
         };
     },
     methods: {
@@ -38,6 +45,7 @@ export default {
     },
     components: {
         ChevronRight,
+        Edit
     }
 }
 </script>
@@ -49,6 +57,7 @@ export default {
 .category-name {
     display: flex;
     align-items: center;
+    justify-content: space-between;
 }
 
 .category-name:hover {
@@ -58,6 +67,10 @@ export default {
 
 .category-name_blue {
     background-color: rgba(151,224,252,255);
+}
+
+.category-name__text {
+    display: flex;
 }
 
 .category-name__text_bold {
