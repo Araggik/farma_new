@@ -61,7 +61,6 @@ export default {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 28px;
 }
 
 .category-name:hover {
@@ -74,10 +73,12 @@ export default {
 }
 
 .category-name__text {
+    font-size: 0.95rem;
     display: flex;
-    line-height: 14px;
+    line-height: 0.95rem;
     overflow: hidden;
     text-overflow: ellipsis;
+    height: 1.9rem;
 }
 
 .category-name__text_bold {

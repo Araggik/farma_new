@@ -3,7 +3,7 @@
       <table class="research-table" :style="{'width': (laboratoriesList.length*5 + 34)+'em'}">
          <thead class="research-table__head">
             <tr>
-               <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']"
+               <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']+'lab'"
                class="research-table__lab-td">
                   {{ laboratory['name_lab'] }}
                </td>
@@ -17,7 +17,7 @@
          <tbody>
             <template v-for="node in researchList" :key="node.category['id_clr']">
                <tr class="category-header" 
-               :class="{'category-header-main': node.category['id_parent'] == 0,
+               :class="{'category-header-main': node.category['id_parent'] == 0 && !isSearchMode,
                   'category-header_blue': node['isCurrentCategory']}"
                :ref="node['isCurrentCategory'] ? 'currentCategory': null">
                   <td :colspan="laboratoriesList.length+1">
@@ -54,6 +54,7 @@ export default {
        researchList: Array,
        laboratoriesList: Array,
        maxLaboratories: Number,
+       isSearchMode: Boolean
    },
    emits: ['researchClick', 'addClick'],
    methods: {

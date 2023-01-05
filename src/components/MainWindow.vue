@@ -12,7 +12,7 @@
     <div class="main-window__right" :style='{flex: rightFraction}'>
       <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"
       :search-result-text="searchResultText"/>
-      <ResearchWindow :research-list="mainCategoryResearches"
+      <ResearchWindow :research-list="mainCategoryResearches" :is-search-mode="isSearchMode"
       :laboratories-list="selectLaboratories" :max-laboratories="laboratories.length"
       @research-click="onResearchClick" @addClick="onAddResearchClick"/>
     </div>
@@ -180,20 +180,30 @@ export default {
       const categoryResponse = await this.api.get('category_lr?name_clr=like.*'+this.searchText+
         '*&order=name_clr.asc');
 
-      this.categoryTree = [];
+      let categoryTree = [];
 
       for(let category of categoryResponse.data){
+          let isCurrent = false;
+
           if (category['id_clr'] == categoryId) {
             this.existCurrentCategoryId = true;
             this.currentMainCategoryId = categoryId;
             this.currentCategoryId = categoryId;
+
+            isCurrent = true;
           }
 
-          this.categoryTree.push({category: category, children: []});
+          categoryTree.push({
+            category: category, 
+            children: [], 
+            isCurrentCategory: isCurrent
+          });
       }
+
+      this.categoryTree = categoryTree;
     },
     async refreshResearchesBySearch(){
-        this.mainCategoryResearches = [];
+        let mainCategoryResearches = [];
 
         if (this.currentCategoryId) {
           const categoryResponse = await this.api.get('category_lr?id_clr=eq.'+this.currentCategoryId);
@@ -201,7 +211,7 @@ export default {
           const researchResponse = await this.api.get('lab_research?id_clr=eq.'+
             this.currentCategoryId+'&order=name_lr.asc&select=*,laboratorys_options(*)');
 
-          this.mainCategoryResearches.push({
+          mainCategoryResearches.push({
             category: categoryResponse.data[0],
             researches: researchResponse.data
           });  
@@ -226,21 +236,23 @@ export default {
               if (category['lab_research'].length > 0){
                 this.searchResearchesCount += category['lab_research'].length;
 
-                const categoryIndex = this.mainCategoryResearches.findIndex((el)=>
+                const categoryIndex = mainCategoryResearches.findIndex((el)=>
                   el.category['id_clr'] == category['id_clr']);
 
                 if (categoryIndex == -1) {
-                  this.mainCategoryResearches.push({
+                  mainCategoryResearches.push({
                     category: category,
-                    researches: category['lab_research']
+                    researches: category['lab_research'],
                   });
                 } else {
-                  this.mainCategoryResearches[categoryIndex].researches.push(...category['lab_research']);
+                  mainCategoryResearches[categoryIndex].researches.push(...category['lab_research']);
                 } 
               }
             }
           }
         }
+
+        this.mainCategoryResearches = mainCategoryResearches;
     },
     async refreshAll(categoryId = null){
       this.currentCategoryId = null;
@@ -479,7 +491,7 @@ export default {
       }
 
       this.refreshAll(this.currentCategoryId);
-    }
+    },
   },
   components: {
     CategoryForm,
