@@ -8,7 +8,7 @@
                 <ChevronRight v-if="tree.children.length>0" 
                 :class="{'rotated': isVisible}">
                 </ChevronRight>
-                <p :class="{'category-name__text_bold': tree.category['id_parent'] == 0}">
+                <p :class="{'category-name__text_bold': isRoot}">
                     {{ tree.category['name_clr'] }}
                 </p>
             </div>
@@ -18,7 +18,7 @@
         </div>
         <ul v-if="tree.children.length >0" v-show="isVisible"
         class="category-list"  :class="{'category-list_margined': tree.category}">
-            <CategoryTree v-for="el in tree.children" :key="el.category['id_clr']" :tree="el"
+            <CategoryTree v-for="el in tree.children" :key="el.category['id_clr']" :tree="el" :isRoot="false"
             @category-click="(categoryId)=>$emit('categoryClick', categoryId)"
             @category-edit="(categoryId)=>$emit('categoryEdit', categoryId)">
             </CategoryTree>
@@ -32,7 +32,7 @@ import ChevronRight from 'vue-material-design-icons/ChevronRight.vue';
 
 export default {
     name: 'CategoryTree',
-    props: ['tree'],
+    props: ['tree', 'isRoot'],
     emits:  ['categoryClick', 'categoryEdit'],
     data(){
         return {

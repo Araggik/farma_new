@@ -19,6 +19,9 @@
                 </div>             
             </div>
         </div>
+        <div class="search-result-text">
+            {{ searchResultText }}
+        </div>
     </div>
 </template>
 
@@ -26,7 +29,7 @@
 import ChevronRight from 'vue-material-design-icons/ChevronRight.vue'; 
 
 export default {
-    props: ['laboratories'],
+    props: ['laboratories', 'searchResultText'],
     emits: ['changeLaboratories'],
     data(){
         return {
@@ -55,6 +58,7 @@ export default {
 .filter-field {
     display: flex;
     position: fixed;
+    background-color: white;
 }
 .drop-check-box__btn {
     display: flex;
@@ -76,5 +80,11 @@ export default {
 .drop-check-box__input {
     height: 1.5em;
     width: 1.5em;
+}
+
+.search-result-text {
+    font-weight: bolder;
+    display: flex;
+    align-items: center;
 }
 </style>

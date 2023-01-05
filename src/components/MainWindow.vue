@@ -2,7 +2,7 @@
   <main class='main-window'>
     <div class='main-window__left' :style='{flex: leftFraction}'>
       <input class='search-input main-window__search' type="text" :placeholder="placeholderText"
-      v-model="searchText">
+      v-model.trim="searchText" @input="refreshAll()">
       <CategoryWindow :category-tree="categoryTree" @change-category="onChangeCategory"
       @addClick="onAddCategoryClick" @category-edit="onEditCategory"/>
     </div>
@@ -10,7 +10,8 @@
 
     </div>
     <div class="main-window__right" :style='{flex: rightFraction}'>
-      <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"/>
+      <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"
+      :search-result-text="searchResultText"/>
       <ResearchWindow :research-list="mainCategoryResearches"
       :laboratories-list="selectLaboratories" :max-laboratories="laboratories.length"
       @research-click="onResearchClick" @addClick="onAddResearchClick"/>
@@ -41,8 +42,10 @@ export default {
       api: axios.create({
         baseURL: "http://45.144.31.110:3000/"
       }),
-      placeholderText: "Поиск по всему",
+      placeholderText: "Поиск по всему (От 3 символов)",
       searchText: "",
+      searchResultText: "",
+      searchResearchesCount: 0,
       leftFraction: 3,
       rightFraction: 7,
       //Рекурсивный объект, в котором хранятся категории
@@ -81,6 +84,9 @@ export default {
     },
     optionUrlParams(){
       return '&' + this.allUrlParams['options'].join('&');
+    },
+    isSearchMode(){
+      return this.searchText.length > 2;
     }
   },
   methods: {
@@ -168,18 +174,95 @@ export default {
       //Обновляем категории и проверям, что выбранная категория существует
       this.existCurrentCategoryId = false;
 
-      this.currentCategoryId = null;
-
       this.refreshAll(categoryId);
     },
+    async refreshCategoryBySearch(categoryId){
+      const categoryResponse = await this.api.get('category_lr?name_clr=like.*'+this.searchText+
+        '*&order=name_clr.asc');
+
+      this.categoryTree = [];
+
+      for(let category of categoryResponse.data){
+          if (category['id_clr'] == categoryId) {
+            this.existCurrentCategoryId = true;
+            this.currentMainCategoryId = categoryId;
+            this.currentCategoryId = categoryId;
+          }
+
+          this.categoryTree.push({category: category, children: []});
+      }
+    },
+    async refreshResearchesBySearch(){
+        this.mainCategoryResearches = [];
+
+        if (this.currentCategoryId) {
+          const categoryResponse = await this.api.get('category_lr?id_clr=eq.'+this.currentCategoryId);
+
+          const researchResponse = await this.api.get('lab_research?id_clr=eq.'+
+            this.currentCategoryId+'&order=name_lr.asc&select=*,laboratorys_options(*)');
+
+          this.mainCategoryResearches.push({
+            category: categoryResponse.data[0],
+            researches: researchResponse.data
+          });  
+
+        } else {
+          const responses = await Promise.all([
+            //По кароткому имени
+            this.api.get('category_lr?order=name_clr.asc&select=*,lab_research(*,laboratorys_options(*))&lab_research.name_lr=like.*'+
+              this.searchText+'*'),
+            //По длинному имени
+            this.api.get('category_lr?order=name_clr.asc&select=*,lab_research(*,laboratorys_options(*))&lab_research.full_name_lr=like.*'+
+              this.searchText+'*'),
+            //По описанию
+            this.api.get('category_lr?order=name_clr.asc&select=*,lab_research(*,laboratorys_options(*))&lab_research.desc_lr=like.*'+
+              this.searchText+'*'),       
+          ]);
+
+          this.searchResearchesCount = 0;
+
+          for(let response of responses){
+            for(let category of response.data){
+              if (category['lab_research'].length > 0){
+                this.searchResearchesCount += category['lab_research'].length;
+
+                const categoryIndex = this.mainCategoryResearches.findIndex((el)=>
+                  el.category['id_clr'] == category['id_clr']);
+
+                if (categoryIndex == -1) {
+                  this.mainCategoryResearches.push({
+                    category: category,
+                    researches: category['lab_research']
+                  });
+                } else {
+                  this.mainCategoryResearches[categoryIndex].researches.push(...category['lab_research']);
+                } 
+              }
+            }
+          }
+        }
+    },
     async refreshAll(categoryId = null){
-      await this.refreshCategory(categoryId);
+      this.currentCategoryId = null;
+
+      this.searchResultText = "";
 
       await this.refreshLaboratories();
 
-      if(categoryId)  {
-        this.refreshResearches();
-      }           
+      if(this.isSearchMode){        
+        await this.refreshCategoryBySearch(categoryId);
+
+        await this.refreshResearchesBySearch();
+
+        this.searchResultText = `Найдено: ${this.categoryTree.length} категорий,
+          ${this.searchResearchesCount} исследований`;
+      } else {
+        await this.refreshCategory(categoryId);
+
+        if(categoryId)  {
+          this.refreshResearches();
+        } 
+      }               
     },
     //Добавляет фильтрацию к laboratorys_options по списку лабораторий
     addLaboratoryOptionsByLabs(labs){

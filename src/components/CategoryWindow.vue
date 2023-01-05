@@ -9,7 +9,7 @@
       </div>
 
       <ul class="first-category-list">
-         <CategoryTree v-for="el in categoryTree" :key="el.category['id_clr']" :tree="el"
+         <CategoryTree v-for="el in categoryTree" :key="el.category['id_clr']" :tree="el" :isRoot="true"
          @category-click="(categoryId)=> $emit('changeCategory', categoryId)"
          @category-edit="(categoryId)=> $emit('categoryEdit', categoryId)"/>
       </ul>
