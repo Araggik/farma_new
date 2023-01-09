@@ -70,26 +70,41 @@ export default {
         research: [
           'order=name_lr.asc'
         ],
-        options: [
-        ]
+        option: [],
+        laboratory: []
       }    
     };
   },
   computed: {
-    categoryUrlParams(){
-      return '&' +this.allUrlParams['category'].join('&');
-    },
-    researchUrlParams(){
-      return '&' +this.allUrlParams['research'].join('&');
-    },
-    optionUrlParams(){
-      return '&' + this.allUrlParams['options'].join('&');
-    },
     isSearchMode(){
       return this.searchText.length > 2;
     }
   },
   methods: {
+    categoryUrlParams(insertSubStr=''){
+      let result = ''
+
+      for(let urlParam of this.allUrlParams.category)
+          result += '&' + insertSubStr + urlParam;
+
+      return result;
+    },
+    researchUrlParams(insertSubStr=''){
+      let result = ''
+
+      for(let urlParam of this.allUrlParams.research)
+          result += '&' + insertSubStr + urlParam;
+
+      return result;
+    },
+    optionUrlParams(insertSubStr=''){
+      let result = ''
+
+      for(let urlParam of this.allUrlParams.option)
+          result += '&' + insertSubStr + urlParam;
+
+      return result;
+    },
     //Возвращает [{category: category, children: []}]
     //Последние два параметра для побочного эффекта
     makeCategoryTree(categories, parentId, checkedCategoryId = null, mainCategoryId =0){
@@ -124,7 +139,7 @@ export default {
         const table = 'category_lr?'
 
         //Получение категорий
-        const categoryResponse = await this.api.get(table+this.categoryUrlParams);
+        const categoryResponse = await this.api.get(table+this.categoryUrlParams());
 
         const categories = categoryResponse.data;
 
@@ -138,9 +153,9 @@ export default {
     async makeResearches(currentNode){
       //Получение исследований категории
       let researchResponse = await 
-        this.api.get('lab_research?id_clr=eq.'+currentNode.category['id_clr']+this.researchUrlParams+
-          '&select=id_lr,name_lr,current_laboratory, laboratorys_options(id_lo,code_l,id_labs)' +
-          this.optionUrlParams
+        this.api.get('lab_research?id_clr=eq.'+currentNode.category['id_clr']+this.researchUrlParams()+
+          '&select=id_lr,name_lr,current_laboratory, laboratorys_options(id_lo,code_l,id_labs)'
+
         );
 
       const categoryResearches = researchResponse.data;
@@ -257,6 +272,8 @@ export default {
     async refreshAll(categoryId = null){
       this.currentCategoryId = null;
 
+      this.mainCategoryResearches = [];
+
       this.searchResultText = "";
 
       await this.refreshLaboratories();
@@ -276,31 +293,29 @@ export default {
         } 
       }               
     },
-    //Добавляет фильтрацию к laboratorys_options по списку лабораторий
-    addLaboratoryOptionsByLabs(labs){
-      //Нужно будет в дальнейшем поменять, пока считаем других опций нет
-      if (this.allUrlParams['options'].length > 0){
-        this.allUrlParams['options'].pop();
-      }
+    // //Добавляет фильтрацию к laboratorys_options по списку лабораторий
+    // addLaboratoryOptionsByLabs(labs){
+    //   //Нужно будет в дальнейшем поменять, пока считаем других опций нет
+    //   if (this.allUrlParams['options'].length > 0){
+    //     this.allUrlParams['options'].pop();
+    //   }
 
-      if (labs.length > 0){
-        let str='laboratorys_options.id_labs=in.(';
+    //   if (labs.length > 0){
+    //     let str='laboratorys_options.id_labs=in.(';
 
-        let n = labs.length-1;
+    //     let n = labs.length-1;
 
-        for(let i=0;i<n;i++){
-          str+=labs[i]['id_labs']+',';
-        }
+    //     for(let i=0;i<n;i++){
+    //       str+=labs[i]['id_labs']+',';
+    //     }
 
-        str +=labs[n]['id_labs']+')';
+    //     str +=labs[n]['id_labs']+')';
 
-        this.allUrlParams['options'].push(str);
-      }
-
-      console.log(this.allUrlParams['options']);
-    },
+    //     this.allUrlParams['options'].push(str);
+    //   }
+    // },
     async onChangeLaboratories(selectLaboratories){
-      this.addLaboratoryOptionsByLabs(selectLaboratories);
+      //this.addLaboratoryOptionsByLabs(selectLaboratories);
 
       await this.refreshAll(this.currentCategoryId);
 
@@ -358,7 +373,7 @@ export default {
         this.currentResearchData[element] = [];
       }
 
-      const categoryResponse = await this.api.get('category_lr?limit=1&order=id_clr.asc');
+      const categoryResponse = await this.api.get('category_lr?limit=1&order=id_clr.asc&na=eq.false');
 
       this.currentResearchData['category_lr'] = categoryResponse.data[0];
 

@@ -1,6 +1,11 @@
 <template>
     <div class="filter-field">
-        <div class="drop-check-box">
+        <div class="check-box">
+            <input type="checkbox" id="naCheckBox">
+
+            <label for="naCheckBox">NA</label>
+        </div>
+        <div v-if="searchResultText ==''" class="drop-check-box">
             <button class="drop-check-box__btn" @click="onBoxClick">
                 <p>
                   Выберите лаборатории 
@@ -58,18 +63,34 @@ export default {
 .filter-field {
     display: flex;
     position: fixed;
-    background-color: white;
+    background-color: lightgray;
+    align-content: baseline;
+    border: 2px solid black;
 }
+
+.check-box {
+    display: flex;
+    align-items: center;
+    padding: 2px;
+}
+
+.drop-check-box {
+    padding: 2px;
+}
+
 .drop-check-box__btn {
     display: flex;
     align-items: center;
-    background-color: lightgrey;
+    width: 12rem;
 }
 
 .drop-check-box__boxes {
+    position: absolute;
     display: flex;
     flex-direction: column;
-    background-color: lightgrey;
+    background-color: lightgray;
+    border: 1px solid black;
+    width: 12rem;
 }
 
 .drop-check-box__item { 
@@ -86,5 +107,6 @@ export default {
     font-weight: bolder;
     display: flex;
     align-items: center;
+    padding: 2px;
 }
 </style>
