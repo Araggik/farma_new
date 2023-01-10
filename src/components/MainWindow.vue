@@ -161,8 +161,7 @@ export default {
       //Получение исследований категории
       let researchResponse = await 
         this.api.get('lab_research?id_clr=eq.'+currentNode.category['id_clr']+this.researchUrlParams()+
-          '&select=id_lr,name_lr,current_laboratory, laboratorys_options(id_lo,code_l,id_labs)'
-
+          '&select=*, laboratorys_options(id_lo,code_l,id_labs)'
         );
 
       const categoryResearches = researchResponse.data;
@@ -273,6 +272,15 @@ export default {
             }
           }
         }
+
+        mainCategoryResearches.sort((a,b)=>{
+          if (a.category['name_clr'] > b.category['name_clr'])
+            return 1;
+          else if (a.category['name_clr'] < b.category['name_clr'])
+            return -1;
+
+          return 0;
+        });
 
         this.mainCategoryResearches = mainCategoryResearches;
     },
@@ -551,7 +559,7 @@ export default {
 <style scoped>
 .main-window {
   padding: 2px;
-  background-color: lightgray;
+  background-color: rgba(239,239,239,255);
 }
 
 .main-window__search {
@@ -584,5 +592,6 @@ export default {
 .search-input {
   width: 100%;
   border: 2px solid black;
+  font-size: 1rem;
 }
 </style>

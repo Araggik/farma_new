@@ -28,6 +28,7 @@
                   <!--При запросе появляются исследования с пустыми опциями-->
                   <tr v-if="!(research['laboratorys_options'].length == 0 && 
                   maxLaboratories != laboratoriesList.length)" class="research-row"
+                  :class="{'research-row_italic': research['na']}"
                   @click="$emit('researchClick', research['id_lr'])">
 
                      <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']"
@@ -130,5 +131,9 @@ td {
 .research-row:hover {
    cursor: pointer;
    font-weight: bolder;
+}
+
+.research-row_italic {
+   font-style: italic;
 }
 </style>
