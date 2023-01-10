@@ -11,7 +11,7 @@
     </div>
     <div class="main-window__right" :style='{flex: rightFraction}'>
       <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"
-      :search-result-text="searchResultText"/>
+      @change-not-active="onChangeNotActive" :search-result-text="searchResultText"/>
       <ResearchWindow :research-list="mainCategoryResearches" :is-search-mode="isSearchMode"
       :laboratories-list="selectLaboratories" :max-laboratories="laboratories.length"
       @research-click="onResearchClick" @addClick="onAddResearchClick"/>
@@ -62,16 +62,23 @@ export default {
       selectLaboratories: [],
       isResearchFormVisible: false,
       isCategoryFormVisible: false,
+      isNotActive: false,
       //Фильтры для сущностей в виде url параметров (NA и др.)
       allUrlParams: {
         category: [
-          'order=name_clr.asc'
+          'order=name_clr.asc',
+          'na=eq.false'
         ],
         research: [
-          'order=name_lr.asc'
+          'order=name_lr.asc',
+          'na=eq.false'
         ],
-        option: [],
-        laboratory: []
+        option: [
+          'na=eq.false'
+        ],
+        laboratory: [
+          'na=eq.false'
+        ]
       }    
     };
   },
@@ -192,8 +199,8 @@ export default {
       this.refreshAll(categoryId);
     },
     async refreshCategoryBySearch(categoryId){
-      const categoryResponse = await this.api.get('category_lr?name_clr=like.*'+this.searchText+
-        '*&order=name_clr.asc');
+      const categoryResponse = await this.api.get('category_lr?name_clr=like.*'+this.searchText+'*'+
+        this.categoryUrlParams());
 
       let categoryTree = [];
 
@@ -224,7 +231,7 @@ export default {
           const categoryResponse = await this.api.get('category_lr?id_clr=eq.'+this.currentCategoryId);
 
           const researchResponse = await this.api.get('lab_research?id_clr=eq.'+
-            this.currentCategoryId+'&order=name_lr.asc&select=*,laboratorys_options(*)');
+            this.currentCategoryId+this.researchUrlParams()+'&select=*,laboratorys_options(*)');
 
           mainCategoryResearches.push({
             category: categoryResponse.data[0],
@@ -235,13 +242,13 @@ export default {
           const responses = await Promise.all([
             //По кароткому имени
             this.api.get('category_lr?order=name_clr.asc&select=*,lab_research(*,laboratorys_options(*))&lab_research.name_lr=like.*'+
-              this.searchText+'*'),
+              this.searchText+'*'+this.researchUrlParams('lab_research.')),
             //По длинному имени
             this.api.get('category_lr?order=name_clr.asc&select=*,lab_research(*,laboratorys_options(*))&lab_research.full_name_lr=like.*'+
-              this.searchText+'*'),
+              this.searchText+'*'+this.researchUrlParams('lab_research.')),
             //По описанию
             this.api.get('category_lr?order=name_clr.asc&select=*,lab_research(*,laboratorys_options(*))&lab_research.desc_lr=like.*'+
-              this.searchText+'*'),       
+              this.searchText+'*'+this.researchUrlParams('lab_research.')),       
           ]);
 
           this.searchResearchesCount = 0;
@@ -323,6 +330,24 @@ export default {
         this.selectLaboratories = selectLaboratories;
       else
         this.selectLaboratories = this.laboratories;   
+    },
+    async onChangeNotActive(){
+      this.isNotActive = !this.isNotActive;
+
+      if (this.isNotActive) {
+        for(let field in this.allUrlParams) {
+          const index = this.allUrlParams[field].findIndex((el)=>el == 'na=eq.false');
+
+          if ( index != -1)
+            this.allUrlParams[field].splice(index, 1);
+        }       
+      } else {
+        for(let field in this.allUrlParams) {
+          this.allUrlParams[field].push('na=eq.false');
+        }
+      }
+
+      await this.refreshAll(this.currentCategoryId);
     },
     async onResearchClick(researchId){
       //Получение исследования и опций по Id

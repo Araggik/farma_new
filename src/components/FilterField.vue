@@ -1,9 +1,10 @@
 <template>
     <div class="filter-field">
         <div class="check-box">
-            <input type="checkbox" id="naCheckBox">
+            <input @change="$emit('changeNotActive')" type="checkbox" id="naCheckBox"
+            class="check-box__input">
 
-            <label for="naCheckBox">NA</label>
+            <label for="naCheckBox" class="check-box__label">NA</label>
         </div>
         <div v-if="searchResultText ==''" class="drop-check-box">
             <button class="drop-check-box__btn" @click="onBoxClick">
@@ -35,11 +36,11 @@ import ChevronRight from 'vue-material-design-icons/ChevronRight.vue';
 
 export default {
     props: ['laboratories', 'searchResultText'],
-    emits: ['changeLaboratories'],
+    emits: ['changeLaboratories', 'changeNotActive'],
     data(){
         return {
             selectLaboratories: this.laboratories,
-            isVisibleCheckBox: false
+            isVisibleCheckBox: false,
         };
     },
     methods: {
@@ -74,6 +75,14 @@ export default {
     padding: 2px;
 }
 
+.check-box__input:hover {
+    cursor: pointer;
+}
+
+.check-box__label:hover {
+    cursor: pointer;
+}
+
 .drop-check-box {
     padding: 2px;
 }
@@ -82,6 +91,10 @@ export default {
     display: flex;
     align-items: center;
     width: 12rem;
+}
+
+.drop-check-box__btn:hover {
+    cursor: pointer;
 }
 
 .drop-check-box__boxes {
