@@ -370,9 +370,14 @@ export default {
         
         delete this.currentResearchData['lab_research']['laboratorys_options'];
 
-        const dataList = ['bm_of_study', 
-          'use_m',
-          'category_lr', 
+        const dataList = [
+          'bm_of_study', 
+          'use_m',      
+        ];
+
+        const additionalDataList = [
+          'category_lr',
+          'laboratories' 
         ];
           
         const responses = await Promise.all([
@@ -383,15 +388,29 @@ export default {
           this.api.get(`lab_research?id_lr=eq.${researchId}
             &select=id_lr, use_m(*, materials(name_m))`),
           //Категория исследования
-          this.api.get(`lab_research?id_lr=eq.${researchId}
-            &select=id_lr, category_lr(id_clr, name_clr)`),       
+
+          // this.api.get(`lab_research?id_lr=eq.${researchId}
+          //   &select=id_lr, category_lr(id_clr, name_clr)`), 
+          
+          this.api.get(`category_lr?id_clr=eq.
+            ${ this.currentResearchData['lab_research']['id_clr'] }`),
+
+          //Лаборатория
+          this.api.get(`laboratories?id_labs=eq.
+            ${ this.currentResearchData['lab_research']['current_laboratory'] }`),   
         ]);  
         
-        for(let i=0; i<responses.length; i++) {
+        for(let i=0; i<dataList.length; i++) {
           this.currentResearchData[dataList[i]] = responses[i].data[0][dataList[i]];
         }
-      }
+
+        for(let i=0; i<additionalDataList.length; i++){
+          this.currentResearchData[additionalDataList[i]] = 
+            responses[i+dataList.length].data[0];
+        }  
         
+      }
+
       this.isResearchFormVisible = true;
     },
     async onAddResearchClick(){
@@ -409,6 +428,10 @@ export default {
       const categoryResponse = await this.api.get('category_lr?limit=1&order=id_clr.asc&na=eq.false');
 
       this.currentResearchData['category_lr'] = categoryResponse.data[0];
+
+      const laboratoryResponse = await this.api.get('laboratories?id_labs=eq.1');
+
+      this.currentResearchData['laboratories'] = laboratoryResponse.data[0];
 
       this.currentResearchData['lab_research'] = {
           'id_clr': this.currentResearchData['category_lr']['id_clr'],

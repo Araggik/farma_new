@@ -44,6 +44,24 @@
                :class="{'form__field-input': typeof(researchData['lab_research'][key]) != 'boolean'}">
             </div>
 
+            <!--Select для основной лаборатории -->
+            <div class="form__field overflow-ellipsis">       
+                <label for='laboratoryResearchField' class="form__field-label">
+                    {{ 'Основная лаборатория:' }}
+                </label>
+                
+                <select id="laboratoryResearchField" @click="loadLaboratories" 
+                @change="dirtyMap['lab_research'] = true"
+                v-model="researchData['lab_research']['current_laboratory']">
+                        <option v-for="laboratory in laboratories" :key="laboratory['id_labs']"
+                        :value="laboratory['id_labs']"
+                        :selected="laboratory['id_labs'] == researchData['lab_research']['current_laboratory']">
+                            {{ laboratory['name_lab'] }}
+                        </option>               
+                </select>
+                       
+            </div>
+
             <!--Список био материалов-->
             <div class="form__lists">
                 <div class="form__list">
@@ -280,7 +298,7 @@ export default {
             newMaterialCount: 1,
             materials: [],
             bioMaterials: [],         
-            laboratories: [],
+            laboratories: [this.data['laboratories']],
             categories: [this.data['category_lr']],
         };
     },
