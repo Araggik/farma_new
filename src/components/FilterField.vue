@@ -4,7 +4,7 @@
             <input @change="$emit('changeNotActive')" type="checkbox" id="naCheckBox"
             class="check-box__input">
 
-            <label for="naCheckBox" class="check-box__label">NA</label>
+            <label for="naCheckBox" class="check-box__label">Показать удаленные</label>
         </div>
         <div v-if="searchResultText ==''" class="drop-check-box">
             <button class="drop-check-box__btn" @click="onBoxClick">
@@ -35,14 +35,19 @@
 import ChevronRight from 'vue-material-design-icons/ChevronRight.vue'; 
 
 export default {
-    props: ['laboratories', 'searchResultText'],
+    props: ['laboratories', 'selectLabs', 'searchResultText'],
     emits: ['changeLaboratories', 'changeNotActive'],
     data(){
         return {
-            selectLaboratories: this.laboratories,
+            selectLaboratories: [],
             isVisibleCheckBox: false,
         };
     },
+    watch: {
+        selectLabs(newValue){
+            this.selectLaboratories = newValue;
+        }
+    }, 
     methods: {
         onBoxClick(){
             this.isVisibleCheckBox = !this.isVisibleCheckBox;

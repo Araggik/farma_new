@@ -8,6 +8,7 @@
       <input class='search-input' type="text" :placeholder="placeholderText"
       v-model.trim="searchText" @input="refreshAll()">
       <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"
+      :select-labs="selectLaboratories"
       @change-not-active="onChangeNotActive" :search-result-text="searchResultText"/>
     </div>
   </header>
@@ -195,7 +196,7 @@ export default {
     },
     async refreshLaboratories(){
       const laboratoriesResponse = await 
-        this.api.get('laboratories');
+        this.api.get('laboratories?order=name_lab.asc');
 
       this.laboratories = laboratoriesResponse.data;
     },
@@ -342,10 +343,22 @@ export default {
 
       await this.refreshAll(this.currentCategoryId);
 
-      if (selectLaboratories.length > 0 )
-        this.selectLaboratories = selectLaboratories;
-      else
-        this.selectLaboratories = this.laboratories;   
+      
+
+      if (selectLaboratories.length > 0 ) {
+        const jsonLabs = JSON.stringify(selectLaboratories);
+
+        localStorage.setItem('laboratories', jsonLabs)
+
+        this.selectLaboratories = selectLaboratories; 
+      } else {
+        const jsonLabs = JSON.stringify(this.laboratories);
+
+        localStorage.setItem('laboratories', jsonLabs)
+
+        this.selectLaboratories = this.laboratories;  
+      }
+         
     },
     async onChangeNotActive(){
       this.isNotActive = !this.isNotActive;
@@ -382,12 +395,7 @@ export default {
           'bm_of_study', 
           'use_m',      
         ];
-
-        const additionalDataList = [
-          'category_lr',
-          'laboratories' 
-        ];
-          
+      
         const responses = await Promise.all([
           //Био материалы исследования
           this.api.get(`lab_research?id_lr=eq.${researchId}
@@ -404,19 +412,16 @@ export default {
             ${ this.currentResearchData['lab_research']['id_clr'] }`),
 
           //Лаборатория
-          this.api.get(`laboratories?id_labs=eq.
-            ${ this.currentResearchData['lab_research']['current_laboratory'] }`),   
+          this.api.get(`laboratories?order=name_lab.asc`),   
         ]);  
         
         for(let i=0; i<dataList.length; i++) {
           this.currentResearchData[dataList[i]] = responses[i].data[0][dataList[i]];
         }
 
-        for(let i=0; i<additionalDataList.length; i++){
-          this.currentResearchData[additionalDataList[i]] = 
-            responses[i+dataList.length].data[0];
-        }  
-        
+        this.currentResearchData['category_lr'] = responses[responses.length-2].data[0];
+
+        this.currentResearchData['laboratories'] = responses[responses.length-1].data;      
       }
 
       this.isResearchFormVisible = true;
@@ -582,7 +587,14 @@ export default {
   async created(){
     this.refreshCategory();
     await this.refreshLaboratories();
-    this.selectLaboratories = this.laboratories;
+
+    const jsonLabs = localStorage.getItem('laboratories');
+
+    if (jsonLabs){
+      this.selectLaboratories = JSON.parse(jsonLabs);
+    } else {
+      this.selectLaboratories = this.laboratories;
+    }
   }
 }
 </script>

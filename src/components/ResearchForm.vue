@@ -298,7 +298,7 @@ export default {
             newMaterialCount: 1,
             materials: [],
             bioMaterials: [],         
-            laboratories: [this.data['laboratories']],
+            laboratories: this.data['laboratories'],
             categories: [this.data['category_lr']],
         };
     },
