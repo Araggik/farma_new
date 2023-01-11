@@ -83,9 +83,9 @@ td {
    white-space: nowrap;
 }
 
-.research-window{
+/* .research-window{
    padding-top: 34px;
-}
+} */
 
 .research-table {
    table-layout: fixed;

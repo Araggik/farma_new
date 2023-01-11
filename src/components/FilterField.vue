@@ -62,11 +62,11 @@ export default {
     transform: rotate(90deg);
 }
 .filter-field {
+    flex: 7;
     display: flex;
-    position: fixed;
     background-color: lightgray;
     align-content: baseline;
-    border: 2px solid black;
+    /* border: 2px solid black; */
 }
 
 .check-box {
@@ -91,6 +91,7 @@ export default {
     display: flex;
     align-items: center;
     width: 12rem;
+    height: 100%;
 }
 
 .drop-check-box__btn:hover {

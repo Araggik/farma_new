@@ -32,7 +32,7 @@ export default {
 
 <style scoped>
 .category-window {
-   border: 2px solid black;
+   /* border: 2px solid black; */
    background-color: white;
 }
 

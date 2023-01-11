@@ -1,17 +1,25 @@
 <template>
-  <main class='main-window'>
-    <div class='main-window__left' :style='{flex: leftFraction}'>
-      <input class='search-input main-window__search' type="text" :placeholder="placeholderText"
+  <header class="main-header">
+    <h1 class="main-header__text">
+      Лабораторные исследования
+    </h1>
+
+    <div class="main-header__options">
+      <input class='search-input' type="text" :placeholder="placeholderText"
       v-model.trim="searchText" @input="refreshAll()">
+      <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"
+      @change-not-active="onChangeNotActive" :search-result-text="searchResultText"/>
+    </div>
+  </header>
+
+  <main class='main-window'>
+    <div class='main-window__left' :style='{flex: leftFraction}'>    
       <CategoryWindow :category-tree="categoryTree" @change-category="onChangeCategory"
       @addClick="onAddCategoryClick" @category-edit="onEditCategory"/>
     </div>
     <div class="main-window__separator">
-
     </div>
-    <div class="main-window__right" :style='{flex: rightFraction}'>
-      <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"
-      @change-not-active="onChangeNotActive" :search-result-text="searchResultText"/>
+    <div class="main-window__right" :style='{flex: rightFraction}'>    
       <ResearchWindow :research-list="mainCategoryResearches" :is-search-mode="isSearchMode"
       :laboratories-list="selectLaboratories" :max-laboratories="laboratories.length"
       @research-click="onResearchClick" @addClick="onAddResearchClick"/>
@@ -580,18 +588,42 @@ export default {
 </script>
 
 <style scoped>
-.main-window {
-  padding: 2px;
-  background-color: rgba(239,239,239,255);
+.main-header {
+  position: fixed;
+  width: 100%;
+  background-color: lightgray;
 }
 
-.main-window__search {
-  margin-bottom: 5px;
+.main-header__text {
+  display: flex;
+  justify-content: center;
+  font-size: 1.5rem;
+  padding: 5px;
+}
+
+.main-header__options {
+  display: flex;
+  height: 2rem;
+}
+
+.search-input {
+  flex: 3;
+  width: 100%;
+  border: 2px solid black;
+  font-size: 1rem;
+}
+
+.main-window {
+  /* padding: 2px; */
+  padding-top: 4.5rem;
+  /* background-color: rgba(239,239,239,255); */
+  background-color: lightgray;
 }
 
 .main-window__left {
-  padding: 2px;
+  /* padding: 2px; */
   overflow: auto;
+  border: 2px solid black;
 }
 
 .main-window__right {
@@ -612,9 +644,4 @@ export default {
   height: 100vh;
 }
 
-.search-input {
-  width: 100%;
-  border: 2px solid black;
-  font-size: 1rem;
-}
 </style>
