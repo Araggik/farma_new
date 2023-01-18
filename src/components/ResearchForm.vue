@@ -22,7 +22,8 @@
                     
                     <select id="categoryResearchField" @click="loadCategories" 
                     @change="dirtyMap['lab_research'] = true"
-                    v-model="researchData['lab_research']['id_clr']">
+                    v-model="researchData['lab_research']['id_clr']"
+                    class='form__field-input'>
                             <option v-for="category in categories" :key="category['id_clr']"
                             :value="category['id_clr']">
                                 {{ category['name_clr'] }}
@@ -37,11 +38,21 @@
                <label :for="key+'ResearchField'" class="form__field-label">
                     {{ value+':' }}
                </label>
-               <input :id="key+'ResearchField'" :value="researchData['lab_research'][key]"
+
+               <textarea v-if="textAreaResearchFields.includes(key)" :id="key+'ResearchField'"
+               @input="onAreaInput(key)"
+               v-model="researchData['lab_research'][key]"
+               @change="dirtyMap['lab_research'] = true"
+               class="form__field-textarea" rows="4">
+               </textarea>
+
+               <input v-else :id="key+'ResearchField'" :value="researchData['lab_research'][key]"
                v-model="researchData['lab_research'][key]"
                @change="dirtyMap['lab_research'] = true"
                :type="typeof(researchData['lab_research'][key]) == 'boolean' ? 'checkbox' : 'text'"
                :class="{'form__field-input': typeof(researchData['lab_research'][key]) != 'boolean'}">
+
+               
             </div>
 
             <!--Select для основной лаборатории -->
@@ -52,7 +63,8 @@
                 
                 <select id="laboratoryResearchField" @click="loadLaboratories" 
                 @change="dirtyMap['lab_research'] = true"
-                v-model="researchData['lab_research']['current_laboratory']">
+                v-model="researchData['lab_research']['current_laboratory']"
+                class='form__field-input'>
                         <option v-for="laboratory in laboratories" :key="laboratory['id_labs']"
                         :value="laboratory['id_labs']"
                         :selected="laboratory['id_labs'] == researchData['lab_research']['current_laboratory']">
@@ -161,7 +173,7 @@
                 <div class="form__table-container">
                     
                     <table class="form__table">
-                        <thead>
+                        <thead class="form__table-head">
                             <tr>
                                 <td v-for="(value, key) in columnNameAndSpan" 
                                 :key="key" :rowspan="value['rowSpan']"
@@ -188,12 +200,13 @@
                             :key="researchOption['id_lo']"
                             :style="researchOption['na'] ? {} : {'font-weight': 'bolder'} ">
                                 <td v-for="(value, key) in visibleOptionFieldMap"
-                                :key="key">                                    
+                                :key="key" class="form__table-td">                                    
                                     <div class="cell"> 
                                         <select v-if="key == 'id_labs'"
                                         v-model="researchOption['id_labs']"
                                         @click="loadLaboratories"
-                                        @change="dirtyMap['laboratorys_options'] = true">
+                                        @change="dirtyMap['laboratorys_options'] = true"
+                                        class="cell__input">
                                             <template v-if="laboratories.length >0">
                                                 <option v-for="lab in laboratories"
                                                 :key="lab['id_labs']"
@@ -239,13 +252,14 @@ export default {
     props: ['data', 'api'],
     emits: ['researchFormClose'],
     data(){
-        return {          
+        return {                    
             visibleResearchFieldMap: {
                 'name_lr': 'Короткое имя',
                 'full_name_lr': 'Полное имя',
                 'desc_lr': 'Описание',
                 'na': 'Удалено'
             },
+            textAreaResearchFields: ['full_name_lr', 'desc_lr'],
             visibleOptionFieldMap: {            
                 'id_labs': 'Лаборатория',
                 'code_l': 'Код',
@@ -423,6 +437,12 @@ export default {
 
             this.dirtyMap['laboratorys_options'] = true;
         },
+        onAreaInput(key){
+            if (this.researchData['lab_research'][key].length > 1000){
+                this.researchData['lab_research'][key] = 
+                    this.researchData['lab_research'][key].slice(0, 1000);
+            }
+        },
         onButtonClick(flag){
             if(flag){
                //При добавлении нового исследования
@@ -510,6 +530,10 @@ select, option {
     white-space: nowrap;
 }
 
+.form__list-body {
+    padding-left: 4px;
+}
+
 .material-name {
     width: 75%;
 }
@@ -518,12 +542,20 @@ select, option {
     width: 15%;
 }
 
+.form__table-head {
+    font-weight: bolder;
+}
+
+.form__table-td {
+    padding: 0;
+}
+
 .cell { 
     overflow: hidden;
     text-overflow: ellipsis;
     width: 6rem;
-    height: 2.2rem;
-    padding: 2px;
+    /* height: 2.2rem; */
+    padding: 2px; 
     text-align: center;
 }
 
@@ -532,7 +564,8 @@ select, option {
 }
 
 .cell__input {
-    max-width: 100%;
+    border: none;
+    width: 100%;
 }
 
 .icons {

@@ -73,7 +73,7 @@ ol[class] {
     flex-direction: column;
     background-color: white;
     border: 2px solid black;
-    width: 44rem;
+    width: 58rem;
     padding: 5px;
     gap: 10px;
     overflow: auto;
@@ -102,7 +102,15 @@ ol[class] {
 }
 
 .form__field-input {
-    width: 100%;
+  width: 100%;
+  font-family: Arial;
+  font-size: 0.9rem;
+}
+
+.form__field-textarea {
+  width: 100%;
+  font-family: Arial;
+  font-size: 0.9rem;
 }
 
 .form__lists {
