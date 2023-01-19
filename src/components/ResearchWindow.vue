@@ -15,7 +15,7 @@
             </tr>
          </thead>
          <tbody>
-            <template v-for="node in researchList" :key="node.category['id_clr']">
+            <template v-for="(node, nodeIndex) in researchList" :key="node.category['id_clr']">
                <tr class="category-header" 
                :class="{'category-header-main': node.category['id_parent'] == 0 && !isSearchMode,
                   'category-header_blue': node['isCurrentCategory']}"
@@ -24,20 +24,29 @@
                      {{ node.category['name_clr'] }}
                   </td>
                </tr>
-               <template v-for="research in node.researches" :key="research['id_lr']">
+               <template v-for="(research, researchIndex) in node.researches" 
+               :key="research['id_lr']">
                   <!--При запросе появляются исследования с пустыми опциями-->
                   <tr v-if="!(research['laboratorys_options'].length == 0 && 
                   maxLaboratories != laboratoriesList.length)" class="research-row"
                   :class="{'research-row_italic': research['na']}"
-                  @click="$emit('researchClick', research['id_lr'])">
+                  >
 
                      <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']"
                      class="research-table__lab-td"
                      :class="{'research-table__lab-td_green':laboratory['id_labs'] 
-                     == research['current_laboratory'] }">
+                        == research['current_laboratory'] }"
+                     @click="onResearchLabClick({
+                        'nodeIndex': nodeIndex,
+                        'researchIndex': researchIndex,
+                        'research': research,
+                        'labId': laboratory['id_labs']
+                        })"
+                     >
                         {{ findCodeByLab(research, laboratory) }}
                      </td>
-                     <td class="research-table__research-td">
+                     <td class="research-table__research-td"
+                     @click="$emit('researchClick', research['id_lr'])">
                         {{ research['name_lr'] }}
                      </td>
 
@@ -55,17 +64,21 @@ export default {
        researchList: Array,
        laboratoriesList: Array,
        maxLaboratories: Number,
-       isSearchMode: Boolean
+       isSearchMode: Boolean,
+       isScroll: Boolean
    },
-   emits: ['researchClick', 'addClick'],
+   emits: ['researchClick', 'addClick', 'changeResearchLab'],
    methods: {
-       findCodeByLab(research, lab) {
-           const labOption = research["laboratorys_options"].find((el) => el["id_labs"] == lab["id_labs"]);
-           return labOption ? labOption["code_l"] : "-";
-       }
+      findCodeByLab(research, lab) {
+          const labOption = research["laboratorys_options"].find((el) => el["id_labs"] == lab["id_labs"]);
+          return labOption ? labOption["code_l"] : "-";
+      },
+      onResearchLabClick(data) {
+         this.$emit('changeResearchLab',data);
+      }
    },
    updated(){
-      if(this.$refs['currentCategory'] && this.$refs['currentCategory'][0])
+      if(this.isScroll && this.$refs['currentCategory'] && this.$refs['currentCategory'][0])
          this.$refs['currentCategory'][0]?.scrollIntoView({ behavior: 'smooth' });
    }
 }
@@ -100,6 +113,10 @@ td {
    padding: 4px;
 }
 
+.research-table__lab-td:hover {
+   background-color: lightgray;
+}
+
 .research-table__lab-td_green {
    background-color: rgba(109,254,168,255);
 }
@@ -107,6 +124,10 @@ td {
 .research-table__research-td {
    width: 34em;
    padding: 4px;
+}
+
+.research-table__research-td:hover {
+   background-color: lightgray;
 }
 
 .table-head-btn {

@@ -21,9 +21,11 @@
     <div class="main-window__separator">
     </div>
     <div class="main-window__right" :style='{flex: rightFraction}'>    
-      <ResearchWindow :research-list="mainCategoryResearches" :is-search-mode="isSearchMode"
+      <ResearchWindow :research-list="mainCategoryResearches" 
+      :is-search-mode="isSearchMode" :is-scroll="isScrollToCurrent"
       :laboratories-list="selectLaboratories" :max-laboratories="laboratories.length"
-      @research-click="onResearchClick" @addClick="onAddResearchClick"/>
+      @research-click="onResearchClick" @addClick="onAddResearchClick"
+      @change-research-lab="onChangeResearchLab"/>
     </div>
   </main>
 
@@ -65,6 +67,8 @@ export default {
       existCurrentCategoryId: false,
       //Список: категория и её исследования
       mainCategoryResearches: [],
+      creatingMainResearches: [],
+      isScrollToCurrent: true,
       //Список лабораторий
       laboratories: [],
       //Выбранные лаборатории
@@ -175,7 +179,7 @@ export default {
 
       const categoryResearches = researchResponse.data;
 
-      this.mainCategoryResearches.push({
+      this.creatingMainResearches.push({
         category: currentNode.category, 
         researches: categoryResearches,
         isCurrentCategory: currentNode.category['id_clr'] == this.currentCategoryId
@@ -190,9 +194,14 @@ export default {
       const mainCategoryTree = 
         this.categoryTree.find(el=>el.category['id_clr'] == this.currentMainCategoryId);
 
-      this.mainCategoryResearches.length = 0;  
+     
+      this.creatingMainResearches.length = 0;
         
       this.makeResearches(mainCategoryTree);
+
+      this.isScrollToCurrent = true;
+
+      this.mainCategoryResearches = this.creatingMainResearches;
     },
     async refreshLaboratories(){
       const laboratoriesResponse = await 
@@ -248,7 +257,7 @@ export default {
 
         } else {
           const responses = await Promise.all([
-            //По кароткому имени
+            //По короткому имени
             this.api.get('category_lr?order=name_clr.asc&select=*,lab_research(*,laboratorys_options(*))&lab_research.name_lr=like.*'+
               this.searchText+'*'+this.researchUrlParams('lab_research.')),
             //По длинному имени
@@ -275,7 +284,16 @@ export default {
                     researches: category['lab_research'],
                   });
                 } else {
-                  mainCategoryResearches[categoryIndex].researches.push(...category['lab_research']);
+                  for(let research of category['lab_research']){
+                    const researchIndex = mainCategoryResearches[categoryIndex].researches
+                      .findIndex((el)=>
+                        el['id_lr'] == research['id_lr']
+                      );
+
+                    if(researchIndex == -1) {
+                      mainCategoryResearches[categoryIndex].researches.push(research);
+                    }                    
+                  }           
                 } 
               }
             }
@@ -290,6 +308,8 @@ export default {
 
           return 0;
         });
+
+        this.isScrollToCurrent = true;
 
         this.mainCategoryResearches = mainCategoryResearches;
     },
@@ -377,6 +397,31 @@ export default {
       }
 
       await this.refreshAll(this.currentCategoryId);
+    },
+    async onChangeResearchLab(data){
+      let newResearchRow = Object.assign({}, data['research']);
+
+      delete newResearchRow['laboratorys_options'];
+
+      newResearchRow['current_laboratory'] = data['labId'];
+
+      try {
+        await this.api.post('lab_research', newResearchRow,{
+          headers: {
+            'Prefer': 'resolution=merge-duplicates'
+          }
+        });
+
+        const treeResearch = 
+          this.mainCategoryResearches[data['nodeIndex']]['researches'][data['researchIndex']];
+
+        this.isScrollToCurrent = false;  
+
+        treeResearch['current_laboratory'] = data['labId'];
+
+      } catch (error) {
+        console.log(error);
+      }
     },
     async onResearchClick(researchId){
       //Получение исследования и опций по Id
