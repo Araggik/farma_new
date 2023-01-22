@@ -42,11 +42,12 @@
                         'research': research,
                         'labId': laboratory['id_labs']
                         })"
-                     >
+                     :title="getCodeTitle(research, laboratory)">
                         {{ findCodeByLab(research, laboratory) }}
                      </td>
                      <td class="research-table__research-td"
-                     @click="$emit('researchClick', research['id_lr'])">
+                     @click="$emit('researchClick', research['id_lr'])"
+                     :title="research['name_lr'].length > 70 ? research['name_lr'] : null">
                         {{ research['name_lr'] }}
                      </td>
 
@@ -69,6 +70,14 @@ export default {
    },
    emits: ['researchClick', 'addClick', 'changeResearchLab'],
    methods: {
+      getCodeTitle(research, laboratory){
+         const code = this.findCodeByLab(research, laboratory);
+
+         if (code.length > 7) 
+            return code;
+         else 
+            return null;   
+      },
       findCodeByLab(research, lab) {
           const labOption = research["laboratorys_options"].find((el) => el["id_labs"] == lab["id_labs"]);
           return labOption ? labOption["code_l"] : "-";

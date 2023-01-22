@@ -444,7 +444,7 @@ export default {
         const responses = await Promise.all([
           //Био материалы исследования
           this.api.get(`lab_research?id_lr=eq.${researchId}
-            &select=id_lr, bm_of_study(*,bio_materials(name_bm))`),
+            &select=id_lr, bm_of_study(*,bio_materials(name_bm, image_index))`),
           //Материалы исследования
           this.api.get(`lab_research?id_lr=eq.${researchId}
             &select=id_lr, use_m(*, materials(name_m))`),
@@ -466,10 +466,10 @@ export default {
 
         this.currentResearchData['category_lr'] = responses[responses.length-2].data[0];
 
-        this.currentResearchData['laboratories'] = responses[responses.length-1].data;      
-      }
-
-      this.isResearchFormVisible = true;
+        this.currentResearchData['laboratories'] = responses[responses.length-1].data;
+        
+        this.isResearchFormVisible = true;
+      }   
     },
     async onAddResearchClick(){
       this.currentResearchData = {};

@@ -104,10 +104,17 @@
 
                         <li v-for="bioMaterial in naSortedBioMaterials"
                         :key="bioMaterial['id_bms']" class="form__list-item">
-                            <div class="overflow-ellipsis"
-                            :style="bioMaterial['na'] ? {} : {'font-weight': 'bolder'}">   
-                                {{ bioMaterial['bio_materials']['name_bm']}}
+                            <div class="bio-material-name">
+                                <img :src="require('../assets/Biomaterials/'+
+                                bioMaterial['bio_materials']['image_index']+'.png')"
+                                class="bio-material-name__icon">
+
+                                <div class="overflow-ellipsis"
+                                :style="bioMaterial['na'] ? {} : {'font-weight': 'bolder'}">   
+                                    {{ bioMaterial['bio_materials']['name_bm']}}
+                                </div>
                             </div>
+                            
                             <Done v-if="bioMaterial['na']" class="icon"
                             @click="onClickIcon(bioMaterial, false, 'bm_of_study')" />
                             <Close v-else class="icon"
@@ -206,6 +213,9 @@
                                         v-model="researchOption['id_labs']"
                                         @click="loadLaboratories"
                                         @change="dirtyMap['laboratorys_options'] = true"
+                                        :title="laboratories.find(
+                                            el=>el['id_labs'] == researchOption['id_labs']
+                                        )['name_lab']"
                                         class="cell__input">
                                             <template v-if="laboratories.length >0">
                                                 <option v-for="lab in laboratories"
@@ -219,7 +229,11 @@
                                             </option>                                          
                                         </select> 
                                         <input v-else v-model="researchOption[key]"
-                                        class="cell__input"
+                                        class="cell__input" 
+
+                                        :title="researchOption[key].toString().length > 10 ? 
+                                        researchOption[key] : null"
+
                                         :type="typeof(researchOption[key]) == 'boolean' ? 
                                         'checkbox' : 'text'"
                                         @change="dirtyMap['laboratorys_options'] = true">                                      
@@ -532,6 +546,15 @@ select, option {
 
 .form__list-body {
     padding-left: 4px;
+}
+
+.bio-material-name {
+    display: flex;
+    align-items: center;
+}
+
+.bio-material-name__icon {
+    margin-right: 4px;
 }
 
 .material-name {
