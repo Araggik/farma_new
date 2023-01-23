@@ -34,11 +34,11 @@
 
             <div class="form__field overflow-ellipsis">
 
-                <label for='name_clrCategoryField' class="form__field-label">
+                <label for='naCategoryField' class="form__field-label">
                     {{ 'Удалено:' }}
                 </label>
 
-                <input id='name_clrCategoryField' v-model="categoryData['na']"
+                <input id='naCategoryField' v-model="categoryData['na']"
                 type="checkbox">      
             </div>
 

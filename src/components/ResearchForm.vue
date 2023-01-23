@@ -104,7 +104,12 @@
 
                         <li v-for="bioMaterial in naSortedBioMaterials"
                         :key="bioMaterial['id_bms']" class="form__list-item">
-                            <div class="bio-material-name">
+                            <div class="bio-material-name" 
+                            @click="onMaterialClick({
+                                isBioMaterial: true,
+                                isNewMaterial: false,                                
+                                materialId: bioMaterial['id_bm']
+                            })">
                                 <img :src="require('../assets/Biomaterials/'+
                                 bioMaterial['bio_materials']['image_index']+'.png')"
                                 class="bio-material-name__icon">
@@ -328,6 +333,7 @@ export default {
             bioMaterials: [],         
             laboratories: this.data['laboratories'],
             categories: [this.data['category_lr']],
+            isBioMaterial
         };
     },
     computed: {
@@ -456,6 +462,9 @@ export default {
                 this.researchData['lab_research'][key] = 
                     this.researchData['lab_research'][key].slice(0, 1000);
             }
+        },
+        onMaterialClick(data){
+
         },
         onButtonClick(flag){
             if(flag){
