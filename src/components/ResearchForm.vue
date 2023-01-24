@@ -457,7 +457,7 @@ export default {
         async onAddBioMaterial(){
             if ( !this.isBioMaterialAdding) {
                 const bioMaterialsResponse = await 
-                    this.api.get('bio_materials?order=name_bm.asc');
+                    this.api.get('bio_materials?order=name_bm.asc&na=eq.false');
 
                 this.bioMaterials = bioMaterialsResponse.data;
 
@@ -469,7 +469,7 @@ export default {
         async onAddMaterial() {
             if ( !this.isMaterialAdding) {
                 const materialsResponse = await 
-                    this.api.get('materials?order=name_m.asc');
+                    this.api.get('materials?order=name_m.asc&na=eq.false');
 
                 this.materials = materialsResponse.data;
 
@@ -568,30 +568,45 @@ export default {
             this.isMaterialFormVisible = false;
 
             if (newMaterial) {
-                let materialTableName = 'materials';
+                let materialTableName = 'materials?';
 
                 if (this.isBioMaterial) {
-                    materialTableName = 'bio_materials';
+                    materialTableName = 'bio_materials?';
                 }
 
-                await this.api.post(materialTableName, newMaterial, {
-                    headers: {
-                        'Prefer': 'resolution=merge-duplicates'
-                    }
-                });
+                try {
+                    await this.api.post(materialTableName, newMaterial, {
+                        headers: {
+                            'Prefer': 'resolution=merge-duplicates'
+                        }
+                    });
 
-                //Изменение соответствующего материала в списке формы исследования
-                if ('id_m' in newMaterial) {
-                    const changedUseM = this.researchData['use_m'].find(
-                        el=> el['id_m'] == newMaterial['id_m']);
+                    //Изменение соответствующего материала в списке формы исследования
+                    if ('id_m' in newMaterial) {
+                        const changedUseM = this.researchData['use_m'].find(
+                            el=> el['id_m'] == newMaterial['id_m']);
+                        
+                        changedUseM['materials'] = newMaterial;    
+                                    
+                    } else if ('id_bm' in newMaterial) {
+                        const changedBmStudy = this.researchData['bm_of_study'].find(
+                            el=> el['id_bm'] == newMaterial['id_bm']);
+                        
+                        changedBmStudy['bio_materials'] = newMaterial;  
+                    } 
                     
-                    changedUseM['materials'] = newMaterial;    
-                                 
-                } else if ('id_bm' in newMaterial) {
-                    const changedBmStudy = this.researchData['bm_of_study'].find(
-                        el=> el['id_bm'] == newMaterial['id_bm']);
+                } catch (error) {
                     
-                    changedBmStudy['bio_materials'] = newMaterial;  
+                    console.log(error);
+
+                } 
+                
+                //Отправка na: false, если элемент с новым именем удален
+                if (!('id_m' in newMaterial) && !(this.isBioMaterial)) {
+                    await this.api.patch('materials?name_m=eq.'+newMaterial['name_m'], {'na': false});
+
+                } else if (!('id_bm' in newMaterial) && this.isBioMaterial) {
+                    await this.api.patch('bio_materials?name_bm=eq.'+newMaterial['name_bm'], {'na': false});
                 }
             }
         },

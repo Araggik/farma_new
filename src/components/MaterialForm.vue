@@ -44,7 +44,7 @@
                 </div>               
             </div>
 
-            <div class="form__field overflow-ellipsis">
+            <div v-if="isNewMaterial" class="form__field overflow-ellipsis">
 
                 <label for='naMaterialField' class="form__field-label">
                     {{ 'Удалено:' }}
@@ -81,6 +81,9 @@ export default {
         }
     },
     computed: {
+        isNewMaterial(){
+            return ('id_bm' in this.materialData) || ('id_m' in this.materialData);
+        },
         formName(){
             let name = '';
 

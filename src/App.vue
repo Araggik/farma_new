@@ -131,7 +131,6 @@ ol[class] {
 }
 
 .form__list {
-  height: 10rem;
   border: 2px solid black;
 }
 
@@ -147,6 +146,7 @@ ol[class] {
 
 .form__list-body {
   width: 100%;
+  height: 10rem;
   overflow: auto;
 }
 
