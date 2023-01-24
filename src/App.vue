@@ -68,6 +68,10 @@ ol[class] {
     overflow: auto;
 }
 
+.modal-layout_z_2 {
+    z-index: 2;
+}
+
 .form {
     display: flex;
     flex-direction: column;
@@ -78,6 +82,10 @@ ol[class] {
     gap: 10px;
     overflow: auto;
     max-height: 90%;
+}
+
+.form_size_medium {
+    width: 48rem;
 }
 
 .form__head {

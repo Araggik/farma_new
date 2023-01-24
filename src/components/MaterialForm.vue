@@ -1,6 +1,6 @@
 <template>
-<div class="modal-layout">
-        <form class="form">
+<div class="modal-layout modal-layout_z_2">
+        <form class="form form_size_medium">
             <div class="form__head">
                 {{ formName }}
             </div>
@@ -12,11 +12,11 @@
                 </label>
         
                <input v-if="isBioMaterial" id='name_mMaterialField' 
-               v-model="materialData['id_bm']"
+               v-model="materialData['name_bm']"
                class="form__field-input"> 
                
                <input v-else id='name_mMaterialField' 
-               v-model="materialData['id_m']"
+               v-model="materialData['name_m']"
                class="form__field-input"> 
             </div>
 
@@ -71,6 +71,8 @@ export default {
 
             return name;
         },
+    },
+    methods: {
         onButtonClick(flag){
             if (flag) {
                 this.$emit('materialFormClose', this.materialData);

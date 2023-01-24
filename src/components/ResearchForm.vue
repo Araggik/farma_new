@@ -51,8 +51,7 @@
                @change="dirtyMap['lab_research'] = true"
                :type="typeof(researchData['lab_research'][key]) == 'boolean' ? 'checkbox' : 'text'"
                :class="{'form__field-input': typeof(researchData['lab_research'][key]) != 'boolean'}">
-
-               
+              
             </div>
 
             <!--Select для основной лаборатории -->
@@ -106,15 +105,21 @@
                         :key="bioMaterial['id_bms']" class="form__list-item">
                             <div class="bio-material-name" 
                             @click="onMaterialClick({
-                                isBioMaterial: true,
-                                isNewMaterial: false,                                
+                                isBioMaterial: true,                               
                                 materialId: bioMaterial['id_bm']
-                            })">
+                            })"
+
+                            :title="bioMaterial['bio_materials']['name_bm'].length > 40 ? 
+                            bioMaterial['bio_materials']['name_bm'] : null">
+
+
                                 <img :src="require('../assets/Biomaterials/'+
                                 bioMaterial['bio_materials']['image_index']+'.png')"
+
                                 class="bio-material-name__icon">
 
-                                <div class="overflow-ellipsis"
+
+                                <div class="overflow-ellipsis"                     
                                 :style="bioMaterial['na'] ? {} : {'font-weight': 'bolder'}">   
                                     {{ bioMaterial['bio_materials']['name_bm']}}
                                 </div>
@@ -122,6 +127,8 @@
                             
                             <Done v-if="bioMaterial['na']" class="icon"
                             @click="onClickIcon(bioMaterial, false, 'bm_of_study')" />
+
+
                             <Close v-else class="icon"
                             @click="onClickIcon(bioMaterial, true, 'bm_of_study')"/>
                         </li>
@@ -158,12 +165,23 @@
                         <li v-for="material in naSortedMaterials"
                         :key="material['id_um']" class="form__list-item">
                             <div class="material-name overflow-ellipsis"  
-                            :style="material['na'] ? {} : {'font-weight': 'bolder'} ">
+                            :style="material['na'] ? {} : {'font-weight': 'bolder'} " 
+                            @click="onMaterialClick({
+                                isBioMaterial: false,                               
+                                materialId: material['id_m']
+                            })"
+                            
+                            :title="material['materials']['name_m'].length > 40 ? 
+                            material['materials']['name_m'] : null">
                                 {{ material['materials']['name_m']}}
                             </div>
+
+
                             <div class="overflow-ellipsis">
                                 {{ material['qty_m']  }}
                             </div>
+
+
                             <Done v-if="material['na']" class="icon"
                             @click="onClickIcon(material, false, 'use_m')"/>
                             <Close v-else class="icon"
@@ -261,11 +279,17 @@
             </div>    
         </form>
     </div>
+
+    <MaterialForm v-if="isMaterialFormVisible"
+    :data="materialData" :is-bio-material="isBioMaterial"
+    @material-form-close="onMaterialFormClose">
+    </MaterialForm>
 </template>
 
 <script>
 import Close from 'vue-material-design-icons/Close.vue';
 import Done from 'vue-material-design-icons/Check.vue';
+import MaterialForm from './MaterialForm.vue';
 
 export default {
     props: ['data', 'api'],
@@ -333,7 +357,10 @@ export default {
             bioMaterials: [],         
             laboratories: this.data['laboratories'],
             categories: [this.data['category_lr']],
-            isBioMaterial
+            isBioMaterial: true,
+            editingMaterialId: null,
+            materialData: null,
+            isMaterialFormVisible: false
         };
     },
     computed: {
@@ -347,11 +374,19 @@ export default {
         },
         naSortedBioMaterials(){
             // eslint-disable-next-line
-            return this.researchData['bm_of_study'].sort(this.sortNaEntities);
+            const sortedList = this.researchData['bm_of_study'].sort(
+                this.sortByField('bio_materials', 'name_bm'));
+
+            // eslint-disable-next-line
+            return sortedList.sort(this.sortNaEntities);
         },
         naSortedMaterials(){
             // eslint-disable-next-line
-            return this.researchData['use_m'].sort(this.sortNaEntities);
+            const sortedList = this.researchData['use_m'].sort(
+                this.sortByField('materials', 'name_m'));
+
+            // eslint-disable-next-line
+            return sortedList.sort(this.sortNaEntities);
         },
         naSortedOptions(){
             // eslint-disable-next-line
@@ -390,7 +425,8 @@ export default {
                     'id_bm': this.newBioMaterial['id_bm'],
                     'na': false,
                     'bio_materials': {
-                        'name_bm': this.newBioMaterial['name_bm']
+                        'name_bm': this.newBioMaterial['name_bm'],
+                        'image_index': this.newBioMaterial['image_index']
                     }
                 });
 
@@ -422,6 +458,17 @@ export default {
 
                 this.isMaterialAdding = true;
             }
+        },
+        sortByField(fieldName, fieldName2){
+            return function(a,b) {
+                if (a[fieldName][fieldName2].toLowerCase() < 
+                    b[fieldName][fieldName2].toLowerCase())
+                    return -1;
+                if (a[fieldName][fieldName2].toLowerCase() > 
+                    b[fieldName][fieldName2].toLowerCase())
+                    return 1;
+                return 0;        
+            };
         },
         sortNaEntities(a, b){
             if (a['na'] && !b['na'])
@@ -463,8 +510,53 @@ export default {
                     this.researchData['lab_research'][key].slice(0, 1000);
             }
         },
-        onMaterialClick(data){
+        async onMaterialClick(data){
+            this.isBioMaterial = data.isBioMaterial;
 
+            let materialResponse;
+
+            if (this.isBioMaterial) {
+                materialResponse =  
+                    await this.api.get(`bio_materials?id_bm=eq.${data.materialId}`);
+            } else {
+                materialResponse =  
+                    await this.api.get(`materials?id_m=eq.${data.materialId}`);
+            }
+
+            this.materialData = materialResponse.data[0];
+
+            this.isMaterialFormVisible = true;
+        },
+        async onMaterialFormClose(newMaterial){
+            this.isMaterialFormVisible = false;
+
+            if (newMaterial) {
+                let materialTableName = 'materials';
+
+                if (this.isBioMaterial) {
+                    materialTableName = 'bio_materials';
+                }
+
+                await this.api.post(materialTableName, newMaterial, {
+                    headers: {
+                        'Prefer': 'resolution=merge-duplicates'
+                    }
+                });
+
+                //Изменение соответствующего материала в списке формы исследования
+                if ('id_m' in newMaterial) {
+                    const changedUseM = this.researchData['use_m'].find(
+                        el=> el['id_m'] == newMaterial['id_m']);
+                    
+                    changedUseM['materials'] = newMaterial;    
+                                 
+                } else if ('id_bm' in newMaterial) {
+                    const changedBmStudy = this.researchData['bm_of_study'].find(
+                        el=> el['id_bm'] == newMaterial['id_bm']);
+                    
+                    changedBmStudy['bio_materials'] = newMaterial;  
+                }
+            }
         },
         onButtonClick(flag){
             if(flag){
@@ -536,6 +628,7 @@ export default {
     components: {
         Close,
         Done,
+        MaterialForm
     }
 }
 </script>
@@ -560,6 +653,12 @@ select, option {
 .bio-material-name {
     display: flex;
     align-items: center;
+    width: 85%;
+}
+
+.bio-material-name:hover {
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 .bio-material-name__icon {
@@ -568,6 +667,11 @@ select, option {
 
 .material-name {
     width: 75%;
+}
+
+.material-name:hover {
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 .material-input-count {
