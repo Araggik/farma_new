@@ -75,120 +75,139 @@
 
             <!--Список био материалов-->
             <div class="form__lists">
-                <div class="form__list">
-                    <div class="form__list-head">
-                        <div>
-                            {{ 'Био материалы' }}
-                        </div>
-                        <button @click.prevent="onAddBioMaterial()"> 
-                            {{ 'Добавить' }}
-                        </button>
-                    </div>
-                    <ul class="form__list-body">
-
-                        <li v-if="isBioMaterialAdding" class="form__list-item">
-                            <select v-model="newBioMaterial">
-                                <option v-for="bioMaterial in bioMaterials"
-                                :key="bioMaterial['id_bm']"
-                                :value="bioMaterial">
-                                    {{ bioMaterial['name_bm'] }}
-                                </option>
-                            </select>
-                            <div class="icons">
-                                <Done class="icon" @click="onAddedBioMaterial(true)"></Done>
-                                <Close class="icon" @click="onAddedBioMaterial(false)"></Close>
-                            </div>                           
-                        </li>
-
-
-                        <li v-for="bioMaterial in naSortedBioMaterials"
-                        :key="bioMaterial['id_bms']" class="form__list-item">
-                            <div class="bio-material-name" 
-                            @click="onMaterialClick({
-                                isBioMaterial: true,                               
-                                materialId: bioMaterial['id_bm']
-                            })"
-
-                            :title="bioMaterial['bio_materials']['name_bm'].length > 40 ? 
-                            bioMaterial['bio_materials']['name_bm'] : null">
-
-
-                                <img :src="require('../assets/Biomaterials/'+
-                                bioMaterial['bio_materials']['image_index']+'.png')"
-
-                                class="bio-material-name__icon">
-
-
-                                <div class="overflow-ellipsis"                     
-                                :style="bioMaterial['na'] ? {} : {'font-weight': 'bolder'}">   
-                                    {{ bioMaterial['bio_materials']['name_bm']}}
-                                </div>
+                <div class="form__list-window">
+                    <div class="form__list">
+                        <div class="form__list-head">
+                            <div>
+                                {{ 'Био материалы' }}
                             </div>
-                            
-                            <Done v-if="bioMaterial['na']" class="icon"
-                            @click="onClickIcon(bioMaterial, false, 'bm_of_study')" />
+                            <button @click.prevent="onAddBioMaterial()"> 
+                                {{ 'Добавить' }}
+                            </button>
+                        </div>
+                    
+                        <ul class="form__list-body">
+
+                            <li v-if="isBioMaterialAdding" class="form__list-item">
+                                <select v-model="newBioMaterial">
+                                    <option v-for="bioMaterial in bioMaterials"
+                                    :key="bioMaterial['id_bm']"
+                                    :value="bioMaterial">
+                                        {{ bioMaterial['name_bm'] }}
+                                    </option>
+                                </select>
+                                <div class="icons">
+                                    <Done class="icon" @click="onAddedBioMaterial(true)"></Done>
+                                    <Close class="icon" @click="onAddedBioMaterial(false)"></Close>
+                                </div>                           
+                            </li>
 
 
-                            <Close v-else class="icon"
-                            @click="onClickIcon(bioMaterial, true, 'bm_of_study')"/>
-                        </li>
-                    </ul>
+                            <li v-for="bioMaterial in naSortedBioMaterials"
+                            :key="bioMaterial['id_bms']" class="form__list-item">
+                                <div class="bio-material-name" 
+                                @click="onMaterialClick({
+                                    isBioMaterial: true,                               
+                                    materialId: bioMaterial['id_bm']
+                                })"
+
+                                :title="bioMaterial['bio_materials']['name_bm'].length > 40 ? 
+                                bioMaterial['bio_materials']['name_bm'] : null">
+
+
+                                    <img :src="require('../assets/Biomaterials/'+
+                                    bioMaterial['bio_materials']['image_index']+'.png')"
+
+                                    class="bio-material-name__icon">
+
+
+                                    <div class="overflow-ellipsis"                     
+                                    :style="bioMaterial['na'] ? {} : {'font-weight': 'bolder'}">   
+                                        {{ bioMaterial['bio_materials']['name_bm']}}
+                                    </div>
+                                </div>
+                                
+                                <Done v-if="bioMaterial['na']" class="icon"
+                                @click="onClickIcon(bioMaterial, false, 'bm_of_study')" />
+
+
+                                <Close v-else class="icon"
+                                @click="onClickIcon(bioMaterial, true, 'bm_of_study')"/>
+                            </li>
+                        </ul>
+
+
+                        
+                    </div>
+
+                    <button @click.prevent="onAddNewMaterial({isBioMaterial: true})"
+                    class="add-new-material-button">
+                        Добавить новый био материал
+                    </button>
                 </div>
 
                 <!--Список материалов-->
-                <div class="form__list">
-                    <div class="form__list-head">
-                        <div>
-                            {{ 'Расходные материалы' }}
-                        </div>         
-                        <button @click.prevent="onAddMaterial()"> 
-                            {{ 'Добавить' }}
-                        </button>
+                <div class="form__list-window">
+                    <div class="form__list">
+                        <div class="form__list-head">
+                            <div>
+                                {{ 'Расходные материалы' }}
+                            </div>         
+                            <button @click.prevent="onAddMaterial()"> 
+                                {{ 'Добавить' }}
+                            </button>
+                        </div>
+                        <ul class="form__list-body">
+                            <li v-if="isMaterialAdding" class="form__list-item">
+                                <select v-model="newMaterial">
+                                    <option v-for="material in materials"
+                                    :key="material['id_m']"
+                                    :value="material">
+                                        {{ material['name_m'] }}
+                                    </option>
+                                </select>
+                                <input v-model.number="newMaterialCount"
+                                class="material-input-count">
+                                <div class="icons">
+                                    <Done class="icon" @click="onAddedMaterial(true)"></Done>
+                                    <Close class="icon" @click="onAddedMaterial(false)"></Close>
+                                </div>                           
+                            </li>
+
+                            <li v-for="material in naSortedMaterials"
+                            :key="material['id_um']" class="form__list-item">
+                                <div class="material-name overflow-ellipsis"  
+                                :style="material['na'] ? {} : {'font-weight': 'bolder'} " 
+                                @click="onMaterialClick({
+                                    isBioMaterial: false,                               
+                                    materialId: material['id_m']
+                                })"
+                                
+                                :title="material['materials']['name_m'].length > 40 ? 
+                                material['materials']['name_m'] : null">
+                                    {{ material['materials']['name_m']}}
+                                </div>
+
+
+                                <div class="overflow-ellipsis">
+                                    {{ material['qty_m']  }}
+                                </div>
+
+
+                                <Done v-if="material['na']" class="icon"
+                                @click="onClickIcon(material, false, 'use_m')"/>
+                                <Close v-else class="icon"
+                                @click="onClickIcon(material, true, 'use_m')"/>
+                            </li>
+                        </ul>
                     </div>
-                    <ul class="form__list-body">
-                        <li v-if="isMaterialAdding" class="form__list-item">
-                            <select v-model="newMaterial">
-                                <option v-for="material in materials"
-                                :key="material['id_m']"
-                                :value="material">
-                                    {{ material['name_m'] }}
-                                </option>
-                            </select>
-                            <input v-model.number="newMaterialCount"
-                            class="material-input-count">
-                            <div class="icons">
-                                <Done class="icon" @click="onAddedMaterial(true)"></Done>
-                                <Close class="icon" @click="onAddedMaterial(false)"></Close>
-                            </div>                           
-                        </li>
-
-                        <li v-for="material in naSortedMaterials"
-                        :key="material['id_um']" class="form__list-item">
-                            <div class="material-name overflow-ellipsis"  
-                            :style="material['na'] ? {} : {'font-weight': 'bolder'} " 
-                            @click="onMaterialClick({
-                                isBioMaterial: false,                               
-                                materialId: material['id_m']
-                            })"
-                            
-                            :title="material['materials']['name_m'].length > 40 ? 
-                            material['materials']['name_m'] : null">
-                                {{ material['materials']['name_m']}}
-                            </div>
 
 
-                            <div class="overflow-ellipsis">
-                                {{ material['qty_m']  }}
-                            </div>
-
-
-                            <Done v-if="material['na']" class="icon"
-                            @click="onClickIcon(material, false, 'use_m')"/>
-                            <Close v-else class="icon"
-                            @click="onClickIcon(material, true, 'use_m')"/>
-                        </li>
-                    </ul>
-                </div>
+                    <button @click.prevent="onAddNewMaterial({isBioMaterial: false})"
+                    class="add-new-material-button">
+                        Добавить новый материал
+                    </button>
+                </div>         
             </div> 
 
             <!--Окно с таблицей-->
@@ -510,6 +529,24 @@ export default {
                     this.researchData['lab_research'][key].slice(0, 1000);
             }
         },
+        onAddNewMaterial(data){
+            this.isBioMaterial = data.isBioMaterial;
+
+            if (this.isBioMaterial) {
+                this.materialData = {
+                    'name_bm': 'Новый био материал',
+                    'na': false,
+                    'image_index': 1
+                };
+            } else {
+                this.materialData = {
+                    'name_m': 'Новый материал',
+                    'na': false,
+                };
+            }
+
+            this.isMaterialFormVisible = true;
+        },
         async onMaterialClick(data){
             this.isBioMaterial = data.isBioMaterial;
 
@@ -676,6 +713,11 @@ select, option {
 
 .material-input-count {
     width: 15%;
+}
+
+.add-new-material-button {
+    width: 100%;
+    height: 1.5rem;
 }
 
 .form__table-head {

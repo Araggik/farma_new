@@ -126,11 +126,13 @@ ol[class] {
   justify-content: space-between;
 }
 
-.form__list {
+.form__list-window {
   width: 48%;
+}
+
+.form__list {
   height: 10rem;
   border: 2px solid black;
-  overflow: auto;
 }
 
 .form__list-head {
@@ -145,6 +147,7 @@ ol[class] {
 
 .form__list-body {
   width: 100%;
+  overflow: auto;
 }
 
 .form__list-item {
