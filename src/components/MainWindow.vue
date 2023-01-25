@@ -630,7 +630,7 @@ export default {
     ResearchForm
   },
   async created(){
-    this.refreshCategory();
+    await this.refreshCategory(1);
     await this.refreshLaboratories();
 
     const jsonLabs = localStorage.getItem('laboratories');
@@ -640,6 +640,8 @@ export default {
     } else {
       this.selectLaboratories = this.laboratories;
     }
+
+    this.refreshResearches();
   }
 }
 </script>

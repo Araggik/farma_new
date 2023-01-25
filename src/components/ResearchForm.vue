@@ -1,7 +1,7 @@
 <template>
     <div class="modal-layout">
-        <form class="form">
-            <div class="form__head">
+        <form class="form" id="researchForm">
+            <div class="form__head" @mousedown="onMouseDown">
                 {{ formName }}
             </div>
 
@@ -379,7 +379,10 @@ export default {
             isBioMaterial: true,
             editingMaterialId: null,
             materialData: null,
-            isMaterialFormVisible: false
+            isMaterialFormVisible: false,
+            posX: null,
+            posY: null,
+            formElement: null
         };
     },
     computed: {
@@ -610,6 +613,31 @@ export default {
                 }
             }
         },
+        onMouseDown(event){
+            this.formElement = document.getElementById('researchForm');
+
+            this.formElement.style.position = 'absolute';
+
+            this.posX = event.clientX;
+            this.posY = event.clientY;
+
+            document.onmouseup = closeDragElement;
+            document.onmousemove = this.elementDrag;
+
+            function closeDragElement(){
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        },
+        elementDrag(e){
+            this.formElement.style.top = (this.formElement.offsetTop - 
+                (this.posY - e.clientY)) + "px";
+            this.formElement.style.left = (this.formElement.offsetLeft - 
+                (this.posX - e.clientX)) + "px";
+
+            this.posX = e.clientX;
+            this.posY = e.clientY;    
+        },       
         onButtonClick(flag){
             if(flag){
                //При добавлении нового исследования
