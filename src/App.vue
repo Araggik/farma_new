@@ -200,6 +200,10 @@ ol[class] {
     cursor: pointer;
 }
 
+.font-style_italic {
+  font-style: italic;
+}
+
 /*Переполнение с многоточием */
 .overflow-ellipsis {
   overflow: hidden;

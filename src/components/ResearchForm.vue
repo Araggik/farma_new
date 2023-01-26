@@ -2,7 +2,13 @@
     <div class="modal-layout">
         <form class="form" id="researchForm">
             <div class="form__head" @mousedown="onMouseDown">
-                {{ formName }}
+                <div>
+                    {{ formName }}
+                </div>
+                
+                <div class="overflow-ellipsis">
+                    {{ researchData['lab_research']['name_lr'] }}
+                </div>
             </div>
 
             <!--Select для категории-->
@@ -90,9 +96,10 @@
 
                             <li v-if="isBioMaterialAdding" class="form__list-item">
                                 <select v-model="newBioMaterial">
-                                    <option v-for="bioMaterial in bioMaterials"
+                                    <option v-for="bioMaterial in bioMaterials"                       
                                     :key="bioMaterial['id_bm']"
-                                    :value="bioMaterial">
+                                    :value="bioMaterial"
+                                    :class="{'font-style_italic': bioMaterial['na']}">
                                         {{ bioMaterial['name_bm'] }}
                                     </option>
                                 </select>
@@ -102,10 +109,13 @@
                                 </div>                           
                             </li>
 
-
                             <li v-for="bioMaterial in naSortedBioMaterials"
                             :key="bioMaterial['id_bms']" class="form__list-item">
-                                <div class="bio-material-name" 
+                                <div class="bio-material-name"
+
+                                :class="{'font-style_italic':
+                                bioMaterial['bio_materials']['na']}" 
+
                                 @click="onMaterialClick({
                                     isBioMaterial: true,                               
                                     materialId: bioMaterial['id_bm']
@@ -134,10 +144,7 @@
                                 <Close v-else class="icon"
                                 @click="onClickIcon(bioMaterial, true, 'bm_of_study')"/>
                             </li>
-                        </ul>
-
-
-                        
+                        </ul>                       
                     </div>
 
                     <button @click.prevent="onAddNewMaterial({isBioMaterial: true})"
@@ -162,7 +169,8 @@
                                 <select v-model="newMaterial">
                                     <option v-for="material in materials"
                                     :key="material['id_m']"
-                                    :value="material">
+                                    :value="material"
+                                    :class="{'font-style_italic': material['na']}">
                                         {{ material['name_m'] }}
                                     </option>
                                 </select>
@@ -176,7 +184,11 @@
 
                             <li v-for="material in naSortedMaterials"
                             :key="material['id_um']" class="form__list-item">
-                                <div class="material-name overflow-ellipsis"  
+                                <div class="material-name overflow-ellipsis" 
+                                
+                                :class="{'font-style_italic':
+                                material['materials']['na']}" 
+
                                 :style="material['na'] ? {} : {'font-weight': 'bolder'} " 
                                 @click="onMaterialClick({
                                     isBioMaterial: false,                               
@@ -311,7 +323,7 @@ import Done from 'vue-material-design-icons/Check.vue';
 import MaterialForm from './MaterialForm.vue';
 
 export default {
-    props: ['data', 'api'],
+    props: ['data', 'api', 'isNotActive'],
     emits: ['researchFormClose'],
     data(){
         return {                    
@@ -386,6 +398,15 @@ export default {
         };
     },
     computed: {
+        naUrlParam(){
+            let param = '';
+
+            if(!this.isNotActive) {
+                param = 'na=eq.false'
+            }
+
+            return param;
+        },
         isNewResearch(){
             return !('id_lr' in this.researchData['lab_research']);
         },
@@ -460,7 +481,8 @@ export default {
         async onAddBioMaterial(){
             if ( !this.isBioMaterialAdding) {
                 const bioMaterialsResponse = await 
-                    this.api.get('bio_materials?order=name_bm.asc&na=eq.false');
+                    this.api.get('bio_materials?order=na.asc,name_bm.asc&'+
+                        this.naUrlParam);
 
                 this.bioMaterials = bioMaterialsResponse.data;
 
@@ -472,7 +494,8 @@ export default {
         async onAddMaterial() {
             if ( !this.isMaterialAdding) {
                 const materialsResponse = await 
-                    this.api.get('materials?order=name_m.asc&na=eq.false');
+                    this.api.get('materials?order=na.asc,name_m.asc&'+
+                        this.naUrlParam);
 
                 this.materials = materialsResponse.data;
 
@@ -584,18 +607,28 @@ export default {
                         }
                     });
 
-                    //Изменение соответствующего материала в списке формы исследования
+                    
                     if ('id_m' in newMaterial) {
-                        const changedUseM = this.researchData['use_m'].find(
+                        const changedIndex = this.researchData['use_m'].findIndex(
                             el=> el['id_m'] == newMaterial['id_m']);
                         
-                        changedUseM['materials'] = newMaterial;    
+                        //Скрытие удаленного материала, если нет флажка na
+                        if (!this.isNotActive && newMaterial['na'])
+                            this.researchData['use_m'].splice(changedIndex, 1);
+                        //Изменение соответствующего материала в списке формы исследования
+                        else      
+                            this.researchData['use_m'][changedIndex]['materials'] 
+                                = newMaterial;    
                                     
                     } else if ('id_bm' in newMaterial) {
-                        const changedBmStudy = this.researchData['bm_of_study'].find(
+                        const changedIndex = this.researchData['bm_of_study'].findIndex(
                             el=> el['id_bm'] == newMaterial['id_bm']);
                         
-                        changedBmStudy['bio_materials'] = newMaterial;  
+                        if (!this.isNotActive && newMaterial['na'])
+                            this.researchData['bm_of_study'].splice(changedIndex, 1);
+                        else      
+                            this.researchData['bm_of_study'][changedIndex]['bio_materials'] 
+                                = newMaterial;
                     } 
                     
                 } catch (error) {

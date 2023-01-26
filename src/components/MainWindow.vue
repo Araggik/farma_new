@@ -30,6 +30,7 @@
   </main>
 
   <ResearchForm v-if="isResearchFormVisible" :data="currentResearchData"
+  :is-not-active="isNotActive"
   @research-form-close="onResearchFormClose" :api="api"/>
 
   <CategoryForm v-if="isCategoryFormVisible" :data="currentCategoryData" :api="api"
@@ -91,6 +92,12 @@ export default {
         ],
         laboratory: [
           'na=eq.false'
+        ],
+        material: [
+          'na=eq.false'
+        ],
+        bioMaterial: [
+          'na=eq.false'
         ]
       }    
     };
@@ -101,29 +108,28 @@ export default {
     }
   },
   methods: {
-    categoryUrlParams(insertSubStr=''){
+    entityUrlParams(insertSubStr, entityName){
       let result = ''
 
-      for(let urlParam of this.allUrlParams.category)
+      for(let urlParam of this.allUrlParams[entityName])
           result += '&' + insertSubStr + urlParam;
 
       return result;
+    },
+    categoryUrlParams(insertSubStr=''){
+      return this.entityUrlParams(insertSubStr, 'category');
     },
     researchUrlParams(insertSubStr=''){
-      let result = ''
-
-      for(let urlParam of this.allUrlParams.research)
-          result += '&' + insertSubStr + urlParam;
-
-      return result;
+      return this.entityUrlParams(insertSubStr, 'research');
     },
     optionUrlParams(insertSubStr=''){
-      let result = ''
-
-      for(let urlParam of this.allUrlParams.option)
-          result += '&' + insertSubStr + urlParam;
-
-      return result;
+      return this.entityUrlParams(insertSubStr, 'option');
+    },
+    materialUrlParams(insertSubStr=''){
+      return this.entityUrlParams(insertSubStr, 'material');
+    },
+    bioMaterialUrlParams(insertSubStr=''){
+      return this.entityUrlParams(insertSubStr, 'bioMaterial');
     },
     //Возвращает [{category: category, children: []}]
     //Последние два параметра для побочного эффекта
@@ -435,24 +441,21 @@ export default {
         this.currentResearchData['lab_research'] =  researchResponse.data[0];
         
         delete this.currentResearchData['lab_research']['laboratorys_options'];
-
-        const dataList = [
-          'bm_of_study', 
-          'use_m',      
-        ];
       
         const responses = await Promise.all([
           //Био материалы исследования
-          this.api.get(`lab_research?id_lr=eq.${researchId}
-            &select=id_lr, bm_of_study(*,bio_materials(name_bm, image_index))`),
-          //Материалы исследования
-          this.api.get(`lab_research?id_lr=eq.${researchId}
-            &select=id_lr, use_m(*, materials(name_m))`),
-          //Категория исследования
+          this.api.get('bm_of_study?id_lr=eq.'+researchId+
+            '&select=*, bio_materials(*)'+this.bioMaterialUrlParams(
+              'bio_materials.'
+            )), 
 
-          // this.api.get(`lab_research?id_lr=eq.${researchId}
-          //   &select=id_lr, category_lr(id_clr, name_clr)`), 
-          
+          //Материалы исследования
+          this.api.get('use_m?id_lr=eq.'+researchId+
+            '&select=*, materials(*)'+this.materialUrlParams(
+              'materials.'
+            )),
+
+          //Категория исследования          
           this.api.get(`category_lr?id_clr=eq.
             ${ this.currentResearchData['lab_research']['id_clr'] }`),
 
@@ -460,13 +463,15 @@ export default {
           this.api.get(`laboratories?order=name_lab.asc`),   
         ]);  
         
-        for(let i=0; i<dataList.length; i++) {
-          this.currentResearchData[dataList[i]] = responses[i].data[0][dataList[i]];
-        }
+        this.currentResearchData['bm_of_study'] = responses[0].data.filter((el)=>
+          el['bio_materials'] != null);
 
-        this.currentResearchData['category_lr'] = responses[responses.length-2].data[0];
+        this.currentResearchData['use_m'] = responses[1].data.filter((el)=>
+          el['materials'] != null);
 
-        this.currentResearchData['laboratories'] = responses[responses.length-1].data;
+        this.currentResearchData['category_lr'] = responses[2].data[0];
+
+        this.currentResearchData['laboratories'] = responses[3].data;
         
         this.isResearchFormVisible = true;
       }   
