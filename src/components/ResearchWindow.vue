@@ -171,6 +171,10 @@ td {
 
 .research-table__head {
    font-weight: bolder;
+   position: sticky;
+   top: 0;
+   background-color: white;
+   box-shadow: inset 1px -1px #000;
 }
 
 .research-table__lab-td {
@@ -187,7 +191,7 @@ td {
 }
 
 .research-table__research-td {
-   width: 34em;
+   width: 29em;
    padding: 4px;
 }
 

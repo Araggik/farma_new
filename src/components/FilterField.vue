@@ -2,7 +2,7 @@
     <div class="filter-field">
         <div class="check-box">
             <input @change="$emit('changeNotActive')" type="checkbox" id="naCheckBox"
-            class="check-box__input">
+            class="check-box__input" :checked="isNotActive">
 
             <label for="naCheckBox" class="check-box__label">Показать удаленные</label>
         </div>
@@ -44,7 +44,8 @@
 import ChevronRight from 'vue-material-design-icons/ChevronRight.vue'; 
 
 export default {
-    props: ['laboratories', 'selectLabs', 'searchResultText', 'isSelectResearches'],
+    props: ['laboratories', 'selectLabs', 'searchResultText', 
+    'isNotActive','isSelectResearches'],
     emits: ['changeLaboratories', 'changeNotActive', 'editSelectResearches'],
     data(){
         return {

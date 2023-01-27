@@ -8,7 +8,7 @@
       <input class='search-input' type="text" :placeholder="placeholderText"
       v-model.trim="searchText" @input="refreshAll()">
       <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"
-      :select-labs="selectLaboratories" 
+      :select-labs="selectLaboratories"  :is-not-active="isNotActive"
       :is-select-researches="selectResearches.length > 0"
       @change-not-active="onChangeNotActive" :search-result-text="searchResultText"
       @edit-select-researches="onEditSelectResearches"/>
@@ -400,9 +400,7 @@ export default {
       }
          
     },
-    async onChangeNotActive(){
-      this.isNotActive = !this.isNotActive;
-
+    changeNaInUrlParams(){
       if (this.isNotActive) {
         for(let field in this.allUrlParams) {
           const index = this.allUrlParams[field].findIndex((el)=>el == 'na=eq.false');
@@ -415,6 +413,13 @@ export default {
           this.allUrlParams[field].push('na=eq.false');
         }
       }
+    },
+    async onChangeNotActive(){
+      this.isNotActive = !this.isNotActive;
+
+      localStorage.setItem('isNotActive',this.isNotActive.toString());
+
+      this.changeNaInUrlParams();
 
       await this.refreshAll(this.currentCategoryId);
     },
@@ -697,9 +702,19 @@ export default {
     SelectResearchesForm
   },
   async created(){
+    //Na из хранилища
+    const storageIsNotActive = localStorage.getItem('isNotActive');
+
+    if (storageIsNotActive == 'true')
+      this.isNotActive = true;
+
+    this.changeNaInUrlParams(); 
+
+    //Обновление категорий, выбранная категория по умолчанию с id=1
     await this.refreshCategory(1);
     await this.refreshLaboratories();
 
+    //Лаборатории из хранилища
     const jsonLabs = localStorage.getItem('laboratories');
 
     if (jsonLabs){
@@ -718,6 +733,7 @@ export default {
   position: fixed;
   width: 100%;
   background-color: lightgray;
+  z-index: 1;
 }
 
 .main-header__text {
@@ -755,7 +771,7 @@ export default {
 .main-window__right {
   border: 2px solid black;
   overflow: auto;
-  padding: 2px;
+  /* padding: 2px; */
   background-color: white;
 }
 
