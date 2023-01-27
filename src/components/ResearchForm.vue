@@ -752,7 +752,7 @@ table, tr, td {
    border: 1px solid black;
 }
 
-select, option {
+select {
     width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;

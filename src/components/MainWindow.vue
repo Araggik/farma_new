@@ -69,6 +69,7 @@ export default {
       //Список: категория и её исследования
       mainCategoryResearches: [],
       creatingMainResearches: [],
+      selectResearches: [],
       isScrollToCurrent: true,
       //Список лабораторий
       laboratories: [],
@@ -185,6 +186,11 @@ export default {
 
       const categoryResearches = researchResponse.data;
 
+      //Добавление свойста для мульти выбора
+      for(let research of categoryResearches){
+        research['isSelected'] = false
+      }
+
       this.creatingMainResearches.push({
         category: currentNode.category, 
         researches: categoryResearches,
@@ -203,11 +209,13 @@ export default {
      
       this.creatingMainResearches.length = 0;
         
-      this.makeResearches(mainCategoryTree);
+      await this.makeResearches(mainCategoryTree);
 
       this.isScrollToCurrent = true;
 
       this.mainCategoryResearches = this.creatingMainResearches;
+
+      console.log(this.mainCategoryResearches);
     },
     async refreshLaboratories(){
       const laboratoriesResponse = await 

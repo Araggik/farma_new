@@ -3,6 +3,8 @@
       <table class="research-table" :style="{'width': (laboratoriesList.length*5 + 34)+'em'}">
          <thead class="research-table__head">
             <tr>
+               <td class="research-table__lab-td"></td>
+
                <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']+'lab'"
                class="research-table__lab-td">
                   {{ laboratory['name_lab'] }}
@@ -29,8 +31,15 @@
                   <!--При запросе появляются исследования с пустыми опциями-->
                   <tr v-if="!(research['laboratorys_options'].length == 0 && 
                   maxLaboratories != laboratoriesList.length)" class="research-row"
-                  :class="{'research-row_italic': research['na']}"
-                  >
+                  :class="{'research-row_italic': research['na']}">
+                  
+                     <td @mousedown="onSelectMouseDown(research)"
+                     @mouseup="onSelectMouseUp"
+                     @mouseenter="onSelectMouseEnter(research)">
+                        <div class="research-table__select-td">
+                           <input v-model="research['isSelected']" type="checkbox">
+                        </div>              
+                     </td>
 
                      <td v-for="laboratory in laboratoriesList" :key="laboratory['id_labs']"
                      class="research-table__lab-td"
@@ -68,8 +77,39 @@ export default {
        isSearchMode: Boolean,
        isScroll: Boolean
    },
-   emits: ['researchClick', 'addClick', 'changeResearchLab'],
+   emits: ['researchClick', 'addClick', 'changeResearchLab', 'changeSelectResearches'],
+   data(){
+      return {
+         selectResearches: [],
+         isSelectMode: false,
+         selectModeTimer: null
+      }
+   },
    methods: {
+      onSelectMouseDown(research){
+         research['isSelected'] = ! research['isSelected'];
+
+         function changeSelectMode (){
+            this.isSelectMode = true;
+
+            console.log(this);
+         }
+
+         const func = changeSelectMode.bind(this);
+
+         this.selectModeTimer = setTimeout(func, 300);
+      }, 
+      onSelectMouseUp(){
+         clearTimeout(this.selectModeTimer);
+
+         this.isSelectMode = false;
+
+         console.log('mouseup');
+      },
+      onSelectMouseEnter(research){
+         if (this.isSelectMode)
+            research['isSelected'] = ! research['isSelected'];
+      },
       getCodeTitle(research, laboratory){
          const code = this.findCodeByLab(research, laboratory);
 
@@ -137,6 +177,13 @@ td {
 
 .research-table__research-td:hover {
    background-color: lightgray;
+}
+
+.research-table__select-td {
+   display: flex;
+   justify-content: center;
+   width: 5em;
+   padding: 4px;
 }
 
 .table-head-btn {
