@@ -1,5 +1,6 @@
 <template>
-   <div class="research-window">   
+   <div class="research-window" @mouseleave="disableSelectMode"
+   @mouseup="disableSelectMode">   
       <table class="research-table" :style="{'width': (laboratoriesList.length*5 + 34)+'em'}">
          <thead class="research-table__head">
             <tr>
@@ -22,7 +23,7 @@
                :class="{'category-header-main': node.category['id_parent'] == 0 && !isSearchMode,
                   'category-header_blue': node['isCurrentCategory']}"
                :ref="node['isCurrentCategory'] ? 'currentCategory': null">
-                  <td :colspan="laboratoriesList.length+1">
+                  <td :colspan="laboratoriesList.length+2">
                      {{ node.category['name_clr'] }}
                   </td>
                </tr>
@@ -33,11 +34,11 @@
                   maxLaboratories != laboratoriesList.length)" class="research-row"
                   :class="{'research-row_italic': research['na']}">
                   
-                     <td @mousedown="onSelectMouseDown(research)"
-                     @mouseup="onSelectMouseUp"
+                     <td @mousedown.prevent="onSelectMouseDown(research)"
                      @mouseenter="onSelectMouseEnter(research)">
                         <div class="research-table__select-td">
-                           <input v-model="research['isSelected']" type="checkbox">
+                           <input v-model="research['isSelected']" type="checkbox"
+                           @click.prevent="null">
                         </div>              
                      </td>
 
@@ -86,29 +87,44 @@ export default {
       }
    },
    methods: {
+      disableSelectMode(){
+         clearTimeout(this.selectModeTimer);
+
+         this.isSelectMode = false;
+      },
+      changeSelectResearches(research){
+         if (research['isSelected']) {
+            this.selectResearches.push({
+               'id_lr': research['id_lr'],
+               'name_lr': research['name_lr']
+            });
+         } else {
+            const deleteIndex = this.selectResearches.findIndex((el)=>
+               el['id_lr'] == research['id_lr']);
+
+            this.selectResearches.splice(deleteIndex, 1);   
+         }
+
+         this.$emit('changeSelectResearches', this.selectResearches);
+      },
       onSelectMouseDown(research){
          research['isSelected'] = ! research['isSelected'];
 
+         this.changeSelectResearches(research);
+
          function changeSelectMode (){
             this.isSelectMode = true;
-
-            console.log(this);
          }
 
          const func = changeSelectMode.bind(this);
 
-         this.selectModeTimer = setTimeout(func, 300);
+         this.selectModeTimer = setTimeout(func, 300);      
       }, 
-      onSelectMouseUp(){
-         clearTimeout(this.selectModeTimer);
-
-         this.isSelectMode = false;
-
-         console.log('mouseup');
-      },
       onSelectMouseEnter(research){
-         if (this.isSelectMode)
+         if (this.isSelectMode){
             research['isSelected'] = ! research['isSelected'];
+            this.changeSelectResearches(research);
+         }         
       },
       getCodeTitle(research, laboratory){
          const code = this.findCodeByLab(research, laboratory);

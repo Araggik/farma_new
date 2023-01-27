@@ -8,8 +8,10 @@
       <input class='search-input' type="text" :placeholder="placeholderText"
       v-model.trim="searchText" @input="refreshAll()">
       <FilterField :laboratories='laboratories' @change-laboratories="onChangeLaboratories"
-      :select-labs="selectLaboratories"
-      @change-not-active="onChangeNotActive" :search-result-text="searchResultText"/>
+      :select-labs="selectLaboratories" 
+      :is-select-researches="selectResearches.length > 0"
+      @change-not-active="onChangeNotActive" :search-result-text="searchResultText"
+      @edit-select-researches="onEditSelectResearches"/>
     </div>
   </header>
 
@@ -25,7 +27,8 @@
       :is-search-mode="isSearchMode" :is-scroll="isScrollToCurrent"
       :laboratories-list="selectLaboratories" :max-laboratories="laboratories.length"
       @research-click="onResearchClick" @addClick="onAddResearchClick"
-      @change-research-lab="onChangeResearchLab"/>
+      @change-research-lab="onChangeResearchLab"
+      @change-select-researches="onChangeSelectResearches"/>
     </div>
   </main>
 
@@ -35,6 +38,9 @@
 
   <CategoryForm v-if="isCategoryFormVisible" :data="currentCategoryData" :api="api"
   @category-form-close="onCategoryFormClose"/>
+
+  <SelectResearchesForm v-if="isSelectResearchesFormVisible"
+  :api="api" @close-select-form="onSelectResearchesFormClose"/>
 </template>
 
 <script>
@@ -45,6 +51,7 @@ import CategoryWindow from './CategoryWindow.vue';
 import FilterField from './FilterField.vue';
 import ResearchForm from './ResearchForm.vue';
 import ResearchWindow from './ResearchWindow.vue';
+import SelectResearchesForm from './SelectResearchesForm.vue';
 
 
 export default {
@@ -77,6 +84,7 @@ export default {
       selectLaboratories: [],
       isResearchFormVisible: false,
       isCategoryFormVisible: false,
+      isSelectResearchesFormVisible: false,
       isNotActive: false,
       //Фильтры для сущностей в виде url параметров (NA и др.)
       allUrlParams: {
@@ -214,8 +222,6 @@ export default {
       this.isScrollToCurrent = true;
 
       this.mainCategoryResearches = this.creatingMainResearches;
-
-      console.log(this.mainCategoryResearches);
     },
     async refreshLaboratories(){
       const laboratoriesResponse = await 
@@ -412,10 +418,21 @@ export default {
 
       await this.refreshAll(this.currentCategoryId);
     },
+    onEditSelectResearches(isEdit){
+      if (isEdit) {
+        this.isSelectResearchesFormVisible = true;
+      } else {
+        this.selectResearches.length = 0;
+
+        this.refreshAll(this.currentCategoryId);
+      }
+    },
     async onChangeResearchLab(data){
       let newResearchRow = Object.assign({}, data['research']);
 
       delete newResearchRow['laboratorys_options'];
+
+      delete newResearchRow['isSelected'];
 
       newResearchRow['current_laboratory'] = data['labId'];
 
@@ -436,6 +453,9 @@ export default {
       } catch (error) {
         console.log(error);
       }
+    },
+    onChangeSelectResearches(researches){
+      this.selectResearches = researches;
     },
     async onResearchClick(researchId){
       //Получение исследования и опций по Id
@@ -634,13 +654,47 @@ export default {
 
       this.refreshAll(this.currentCategoryId);
     },
+    onSelectResearchesFormClose(changedData){
+      if (changedData){
+        let postData = [];
+
+        const entries = Object.entries(changedData);
+
+        for(let research of this.selectResearches){
+          let newResearchData = research;
+
+          for(const [key, value] of entries){
+            newResearchData[key] = value;
+          }
+
+          postData.push(newResearchData);
+        }
+
+        
+          this.api.post('lab_research', postData, 
+            {
+              headers: {
+                  'Prefer': 'resolution=merge-duplicates'
+              }
+            }
+          );
+        
+        
+      }      
+      this.selectResearches.length = 0;
+
+      this.isSelectResearchesFormVisible = false;
+
+      this.refreshAll(this.currentCategoryId);
+    }
   },
   components: {
     CategoryForm,
     CategoryWindow,
     FilterField,
     ResearchWindow,
-    ResearchForm
+    ResearchForm,
+    SelectResearchesForm
   },
   async created(){
     await this.refreshCategory(1);

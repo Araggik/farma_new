@@ -28,6 +28,15 @@
         <div class="search-result-text">
             {{ searchResultText }}
         </div>
+        <div v-if="isSelectResearches" class="select-researches-buttons">
+            <button @click="$emit('editSelectResearches', true)">
+                Изменить выбранное
+            </button>
+
+            <button @click="$emit('editSelectResearches', false)">
+                Отмена
+            </button>
+        </div>
     </div>
 </template>
 
@@ -35,8 +44,8 @@
 import ChevronRight from 'vue-material-design-icons/ChevronRight.vue'; 
 
 export default {
-    props: ['laboratories', 'selectLabs', 'searchResultText'],
-    emits: ['changeLaboratories', 'changeNotActive'],
+    props: ['laboratories', 'selectLabs', 'searchResultText', 'isSelectResearches'],
+    emits: ['changeLaboratories', 'changeNotActive', 'editSelectResearches'],
     data(){
         return {
             selectLaboratories: [],
@@ -127,5 +136,10 @@ export default {
     display: flex;
     align-items: center;
     padding: 2px;
+}
+
+.select-researches-buttons {
+    display: flex;
+    justify-content: space-between;
 }
 </style>
