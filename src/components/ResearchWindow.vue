@@ -30,8 +30,10 @@
                <template v-for="(research, researchIndex) in node.researches" 
                :key="research['id_lr']">
                   <!--При запросе появляются исследования с пустыми опциями-->
-                  <tr v-if="!(research['laboratorys_options'].length == 0 && 
+                  <!-- <tr v-if="!(research['laboratorys_options'].length == 0 && 
                   maxLaboratories != laboratoriesList.length)" class="research-row"
+                  :class="{'research-row_italic': research['na']}"> -->
+                  <tr class="research-row"
                   :class="{'research-row_italic': research['na']}">
                   
                      <td @mousedown.prevent="onSelectMouseDown(research)"
@@ -83,7 +85,9 @@ export default {
       return {
          selectResearches: [],
          isSelectMode: false,
-         selectModeTimer: null
+         selectModeTimer: null,
+         //Раньше при клике на checkbox исследования происходил скроллинг
+         isClickCheckbox: false
       }
    },
    methods: {
@@ -108,6 +112,8 @@ export default {
          this.$emit('changeSelectResearches', this.selectResearches);
       },
       onSelectMouseDown(research){
+         this.isClickCheckbox = true;
+
          research['isSelected'] = ! research['isSelected'];
 
          this.changeSelectResearches(research);
@@ -118,7 +124,7 @@ export default {
 
          const func = changeSelectMode.bind(this);
 
-         this.selectModeTimer = setTimeout(func, 300);      
+         this.selectModeTimer = setTimeout(func, 200);      
       }, 
       onSelectMouseEnter(research){
          if (this.isSelectMode){
@@ -142,9 +148,15 @@ export default {
          this.$emit('changeResearchLab',data);
       }
    },
+   watch: {
+      researchList(){
+         this.isClickCheckbox = false;
+      }
+   },
    updated(){
-      if(this.isScroll && this.$refs['currentCategory'] && this.$refs['currentCategory'][0])
-         this.$refs['currentCategory'][0]?.scrollIntoView({ behavior: 'smooth' });
+      if(this.isScroll && !this.isClickCheckbox &&
+         this.$refs['currentCategory'] && this.$refs['currentCategory'][0])
+            this.$refs['currentCategory'][0]?.scrollIntoView({ behavior: 'smooth' });
    }
 }
 </script>
